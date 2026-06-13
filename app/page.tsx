@@ -2,6 +2,7 @@
 
 
 import { useState } from 'react';
+type AgentKey = 'lead' | 'content' | 'competitor' | 'workflow';
 
 export default function Home() {
   // 1. Keep track of the user's inputs for each specific agent type
@@ -13,7 +14,7 @@ export default function Home() {
   });
 
   // Helper to handle updating the text values dynamically
-  const handleInputChange = (agent: string, field: string, value: string) => {
+  const handleInputChange = (agent: AgentKey, field: string, value: string) => {
     setInputs(prev => ({
       ...prev,
       [agent]: { ...prev[agent], [field]: value }
@@ -21,7 +22,7 @@ export default function Home() {
   };
 
   // 2. The upgraded Razorpay checkout function
-  const handleCheckout = async (agentKey: string, agentName: string) => {
+  const handleCheckout = async (agentKey: AgentKey, agentName: string) => {
     const { prompt, email } = inputs[agentKey];
 
     if (!prompt || !email) {
