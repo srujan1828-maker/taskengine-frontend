@@ -2,6 +2,7 @@
 
 
 import { useState } from 'react';
+import Script from 'next/script';
 type AgentKey = 'lead' | 'content' | 'competitor' | 'workflow';
 
 export default function Home() {
@@ -59,6 +60,13 @@ export default function Home() {
   };
 
   return (
+    <>
+      {/* This invisible tag downloads Razorpay in the background */}
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      
+      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-black selection:text-white">
+        {/* ... the rest of your header and main code stays exactly the same ... */}
+    
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-black selection:text-white">
       {/* Premium Header Section */}
       <header className="max-w-4xl mx-auto pt-16 pb-12 text-center px-4">
