@@ -37,6 +37,7 @@ export default function Home() {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
       amount: 150000, // ₹1,500 in paise
       currency: "INR",
+      payment_capture: 1,
       name: "TaskEngine",
       description: `Hire ${agentName}`,
       image: "https://taskengine.software/logo.png", // Optional logo path
