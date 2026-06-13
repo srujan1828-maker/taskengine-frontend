@@ -13,7 +13,7 @@ export default function Home() {
   });
 
   // Helper to handle updating the text values dynamically
-  const handleInputChange = (agent, field, value) => {
+  const handleInputChange = (agent: string, field: string, value: string) => {
     setInputs(prev => ({
       ...prev,
       [agent]: { ...prev[agent], [field]: value }
@@ -21,7 +21,7 @@ export default function Home() {
   };
 
   // 2. The upgraded Razorpay checkout function
-  const handleCheckout = async (agentKey, agentName) => {
+  const handleCheckout = async (agentKey: string, agentName: string) => {
     const { prompt, email } = inputs[agentKey];
 
     if (!prompt || !email) {
