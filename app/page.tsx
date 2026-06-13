@@ -38,7 +38,7 @@ export default function Home() {
       name: "TaskEngine",
       description: `Hire ${agentName}`,
       image: "https://taskengine.software/logo.png", // Optional logo path
-      handler: function (response) {
+      handler: function (response: any) {
         alert(`Payment successful! Order ID: ${response.razorpay_order_id}`);
       },
       prefill: {
