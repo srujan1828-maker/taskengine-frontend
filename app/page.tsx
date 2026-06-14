@@ -39,7 +39,7 @@ const AGENTS: AgentDetails[] = [
     promptGuide: "Pro Tip: Specify exact titles (e.g., 'Founders'), company size, and exclusions for best results.",
     previewLabel: "View Sample CSV Output",
     previewTitle: "te_leads_export.csv",
-    previewFormat: "CSV / Excel Data"
+    previewFormat: "CSV Data Grid"
   },
   { 
     id: 'content', 
@@ -54,7 +54,7 @@ const AGENTS: AgentDetails[] = [
     promptGuide: "Pro Tip: Provide your primary keyword, brand voice (e.g., 'professional but witty'), and target audience.",
     previewLabel: "View Sample Blog Draft",
     previewTitle: "skincare_seo_blog_final.md",
-    previewFormat: "Markdown Document"
+    previewFormat: "Markdown Syntax"
   },
   { 
     id: 'competitor', 
@@ -69,7 +69,7 @@ const AGENTS: AgentDetails[] = [
     promptGuide: "Pro Tip: Include your domain URL and your top 2 biggest competitors' URLs.",
     previewLabel: "View Sample SEO Report",
     previewTitle: "competitor_gap_analysis.csv",
-    previewFormat: "Data Table / CSV"
+    previewFormat: "SEO Audit Dashboard"
   },
   { 
     id: 'workflow', 
@@ -84,7 +84,7 @@ const AGENTS: AgentDetails[] = [
     promptGuide: "Pro Tip: Clearly state the trigger app, the exact data you want moved, and the final destination app.",
     previewLabel: "View Sample Logic Schema",
     previewTitle: "invoice_automation_schema.json",
-    previewFormat: "JSON / Code Block"
+    previewFormat: "Node Architecture & JSON"
   },
 ];
 
@@ -109,7 +109,7 @@ export default function Home() {
 
   const handleTabSwitch = (agent: AgentDetails) => {
     setActiveAgent(agent);
-    setShowPreview(false); // Close preview automatically if they switch tabs
+    setShowPreview(false);
   };
 
   const handleCheckout = async (agentKey: AgentKey, agentName: string) => {
@@ -144,10 +144,10 @@ export default function Home() {
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       
-      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-black selection:text-white">
+      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-black selection:text-white relative">
         
         {/* NAVBAR */}
-        <nav className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-200/50">
+        <nav className="sticky top-0 z-40 backdrop-blur-md bg-white/80 border-b border-slate-200/50">
           <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-2 cursor-pointer">
               <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-black text-sm tracking-tighter">TE</div>
@@ -167,7 +167,7 @@ export default function Home() {
         </nav>
 
         {/* HERO SECTION */}
-        <header className="max-w-5xl mx-auto pt-24 pb-8 text-center px-4">
+        <header className="max-w-5xl mx-auto pt-24 pb-8 text-center px-4 relative z-0">
           <span className="text-xs font-bold tracking-widest text-slate-500 uppercase bg-slate-200/50 px-3 py-1 rounded-full border border-slate-200">
             No subscriptions. No retainers. Just execution.
           </span>
@@ -180,7 +180,7 @@ export default function Home() {
         </header>
 
         {/* INTERACTIVE WORKSPACE */}
-        <section id="workspace" className="max-w-5xl mx-auto px-4 pb-20 pt-8 space-y-6 scroll-mt-20">
+        <section id="workspace" className="max-w-5xl mx-auto px-4 pb-20 pt-8 space-y-6 scroll-mt-20 relative z-0">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {AGENTS.map((agent) => {
               const isActive = activeAgent.id === agent.id;
@@ -202,10 +202,10 @@ export default function Home() {
             })}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col md:flex-row gap-8 relative overflow-hidden">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col md:flex-row gap-8 relative">
             
             {/* Left Column: Context & Parameters */}
-            <div className="md:w-1/2 space-y-6 relative z-10">
+            <div className="md:w-1/2 space-y-6">
               <div>
                 <div className="flex items-center space-x-3">
                   <span className="text-3xl">{activeAgent.icon}</span>
@@ -253,7 +253,7 @@ export default function Home() {
             </div>
 
             {/* Right Column: Input & Checkout */}
-            <div className="md:w-1/2 space-y-4 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
+            <div className="md:w-1/2 space-y-4 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8">
               <div className="space-y-1.5">
                 <div className="flex justify-between items-end">
                   <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Operational Instructions</label>
@@ -295,165 +295,221 @@ export default function Home() {
                 
                 <div className="flex items-center justify-between px-1">
                   <button 
-                    onClick={() => setShowPreview(!showPreview)} 
+                    onClick={() => setShowPreview(true)} 
                     className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition underline underline-offset-2 flex items-center gap-1"
                   >
-                    {showPreview ? "Hide Preview" : activeAgent.previewLabel}
+                    {activeAgent.previewLabel}
                   </button>
                   <span className="text-xs font-medium text-slate-500 ml-auto">🔒 Secure Escrow via Razorpay</span>
                 </div>
               </div>
             </div>
-
-            {/* ✨ DYNAMIC VISUAL PROOF (OVERLAY) */}
-            {showPreview && (
-              <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-20 p-6 md:p-8 flex flex-col border border-slate-200 rounded-2xl animate-fade-in overflow-y-auto">
-                <div className="flex justify-between items-center mb-6 shrink-0">
-                  <div>
-                    <h3 className="font-bold text-lg">Sample Execution Payload</h3>
-                    <p className="text-xs text-slate-500">Delivered as `{activeAgent.previewTitle}` ({activeAgent.previewFormat})</p>
-                  </div>
-                  <button onClick={() => setShowPreview(false)} className="text-slate-400 hover:text-black">
-                    ✕ Close
-                  </button>
-                </div>
-                
-                {/* DYNAMIC CONTENT BLOCK */}
-                <div className="flex-grow rounded-lg border border-slate-200 shadow-sm bg-white overflow-hidden">
-                  
-                  {/* LEAD AGENT PREVIEW (CSV) */}
-                  {activeAgent.id === 'lead' && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
-                          <tr>
-                            <th className="px-4 py-3 border-b">First Name</th>
-                            <th className="px-4 py-3 border-b">Last Name</th>
-                            <th className="px-4 py-3 border-b">Job Title</th>
-                            <th className="px-4 py-3 border-b">Verified Email</th>
-                            <th className="px-4 py-3 border-b">Company</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 text-slate-700">
-                          <tr>
-                            <td className="px-4 py-3">Sarah</td><td className="px-4 py-3">Jenkins</td><td className="px-4 py-3">VP Marketing</td>
-                            <td className="px-4 py-3 text-green-600 font-medium">s.jenkins@acme.corp</td><td className="px-4 py-3 text-blue-500 underline">acme.corp</td>
-                          </tr>
-                          <tr className="bg-slate-50/50">
-                            <td className="px-4 py-3">David</td><td className="px-4 py-3">Chen</td><td className="px-4 py-3">Founder</td>
-                            <td className="px-4 py-3 text-green-600 font-medium">david@chen.io</td><td className="px-4 py-3 text-blue-500 underline">chen.io</td>
-                          </tr>
-                          <tr>
-                            <td className="px-4 py-3">Elena</td><td className="px-4 py-3">Rostova</td><td className="px-4 py-3">Head of Growth</td>
-                            <td className="px-4 py-3 text-green-600 font-medium">elena.r@growthco.in</td><td className="px-4 py-3 text-blue-500 underline">growthco.in</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {/* CONTENT AGENT PREVIEW (Markdown) */}
-                  {activeAgent.id === 'content' && (
-                    <div className="p-6 text-sm text-slate-700 font-serif leading-relaxed h-full overflow-y-auto">
-                      <h1 className="text-2xl font-bold mb-4 font-sans"># The Future of Organic Skincare: Why Vitamin E is Essential</h1>
-                      <p className="mb-4">In a world dominated by synthetic chemicals, the return to organic, plant-based skincare isn't just a trend—it's a necessity. At the forefront of this revolution is **Vitamin E**.</p>
-                      <h2 className="text-lg font-bold mt-6 mb-2 font-sans">## Top 3 Benefits of Natural Vitamin E</h2>
-                      <ul className="list-disc pl-5 mb-4 space-y-1">
-                        <li><strong>Cellular Repair:</strong> Accelerates the healing of micro-abrasions.</li>
-                        <li><strong>Antioxidant Barrier:</strong> Defends against urban pollution and UV free radicals.</li>
-                        <li><strong>Deep Hydration:</strong> Locks in moisture without clogging pores.</li>
-                      </ul>
-                      <p className="italic text-slate-500">...[Article continues for 1,200 words]...</p>
-                    </div>
-                  )}
-
-                  {/* COMPETITOR AGENT PREVIEW (SEO Table) */}
-                  {activeAgent.id === 'competitor' && (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs whitespace-nowrap">
-                        <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
-                          <tr>
-                            <th className="px-4 py-3 border-b">Target Keyword</th>
-                            <th className="px-4 py-3 border-b">Search Vol</th>
-                            <th className="px-4 py-3 border-b">KD Score</th>
-                            <th className="px-4 py-3 border-b">Competitor Rank</th>
-                            <th className="px-4 py-3 border-b">Your Rank</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 text-slate-700">
-                          <tr>
-                            <td className="px-4 py-3 font-semibold">"Boutique Pilates near me"</td><td className="px-4 py-3">2,400/mo</td><td className="px-4 py-3 text-green-600 font-bold">12 (Easy)</td>
-                            <td className="px-4 py-3">Rank 3 (urbanfit.com)</td><td className="px-4 py-3 text-red-500">Unranked</td>
-                          </tr>
-                          <tr className="bg-slate-50/50">
-                            <td className="px-4 py-3 font-semibold">"Reformer classes Bangalore"</td><td className="px-4 py-3">1,800/mo</td><td className="px-4 py-3 text-yellow-600 font-bold">34 (Med)</td>
-                            <td className="px-4 py-3">Rank 1 (urbanfit.com)</td><td className="px-4 py-3">Rank 12</td>
-                          </tr>
-                          <tr>
-                            <td className="px-4 py-3 font-semibold">"Pilates vs Yoga weight loss"</td><td className="px-4 py-3">5,600/mo</td><td className="px-4 py-3 text-green-600 font-bold">18 (Easy)</td>
-                            <td className="px-4 py-3">Rank 5 (urbanfit.com)</td><td className="px-4 py-3 text-red-500">Unranked</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-
-                  {/* WORKFLOW AGENT PREVIEW (JSON/Code) */}
-                  {activeAgent.id === 'workflow' && (
-                    <div className="bg-[#0D1117] p-5 h-full overflow-y-auto">
-                      <pre className="text-[11px] text-green-400 font-mono leading-relaxed">
-{`{
-  "name": "Invoice Parsing Workflow",
-  "nodes": [
-    {
-      "id": "gmail_trigger_01",
-      "type": "n8n-nodes-base.gmailTrigger",
-      "parameters": {
-        "pollTimes": {"item": [{"mode": "everyMinute"}]},
-        "q": "has:attachment filename:pdf subject:invoice"
-      }
-    },
-    {
-      "id": "google_drive_02",
-      "type": "n8n-nodes-base.googleDrive",
-      "parameters": {
-        "operation": "upload",
-        "fileContent": "={{$json.attachment}}",
-        "folderId": "1aBcD2eFgH3iJkL"
-      }
-    },
-    {
-      "id": "slack_alert_03",
-      "type": "n8n-nodes-base.slack",
-      "parameters": {
-        "channel": "#finance-alerts",
-        "text": "=New invoice saved to Drive: {{$json.fileName}}"
-      }
-    }
-  ]
-}`}
-                      </pre>
-                    </div>
-                  )}
-
-                </div>
-
-                <div className="pt-6 text-center shrink-0">
-                  <button 
-                    onClick={() => setShowPreview(false)} 
-                    className="bg-black text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:bg-slate-800 transition"
-                  >
-                    Looks Good, Return to Configurator
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </section>
 
+        {/* ✨ DYNAMIC VISUAL PROOF MODAL (Appears over the whole screen) */}
+        {showPreview && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowPreview(false)}></div>
+            <div className="relative bg-white w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col border border-slate-200 overflow-hidden animate-fade-in max-h-[90vh]">
+              
+              {/* Modal Header */}
+              <div className="flex justify-between items-center bg-slate-50 px-6 py-4 border-b border-slate-200 shrink-0">
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900">Sample Output Payload</h3>
+                  <p className="text-xs text-slate-500 font-mono mt-0.5">{activeAgent.previewTitle} • {activeAgent.previewFormat}</p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider hidden sm:block">Preview Only</span>
+                  <button onClick={() => setShowPreview(false)} className="bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-slate-100 transition">
+                    Close Preview
+                  </button>
+                </div>
+              </div>
+              
+              {/* Modal Body / Scrollable Area */}
+              <div className="p-6 overflow-y-auto bg-slate-100/50">
+                
+                {/* 1. LEAD AGENT (Airtable / Data Grid Style) */}
+                {activeAgent.id === 'lead' && (
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                      <div className="flex space-x-3 text-xs font-semibold text-slate-600">
+                        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">250 Rows Generated</span>
+                        <span className="flex items-center text-green-600"><span className="mr-1">✓</span> Verified</span>
+                      </div>
+                      <div className="text-xs text-slate-400 font-mono">te_leads_export.csv</div>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm whitespace-nowrap">
+                        <thead className="bg-white text-slate-400 font-bold text-xs uppercase border-b border-slate-100">
+                          <tr>
+                            <th className="px-4 py-3 w-8 text-center border-r border-slate-50">#</th>
+                            <th className="px-4 py-3">First Name</th>
+                            <th className="px-4 py-3">Last Name</th>
+                            <th className="px-4 py-3">Job Title</th>
+                            <th className="px-4 py-3 bg-green-50/30">Verified Email</th>
+                            <th className="px-4 py-3">LinkedIn Profile</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
+                          <tr className="hover:bg-slate-50">
+                            <td className="px-4 py-3 text-slate-300 text-center border-r border-slate-50 text-xs">1</td>
+                            <td className="px-4 py-3 font-medium">Sarah</td><td className="px-4 py-3">Jenkins</td><td className="px-4 py-3">VP Marketing</td>
+                            <td className="px-4 py-3 text-green-600 font-mono text-xs bg-green-50/30">s.jenkins@acme.corp</td><td className="px-4 py-3 text-blue-500 hover:underline text-xs">linkedin.com/in/sarahjenk</td>
+                          </tr>
+                          <tr className="hover:bg-slate-50">
+                            <td className="px-4 py-3 text-slate-300 text-center border-r border-slate-50 text-xs">2</td>
+                            <td className="px-4 py-3 font-medium">David</td><td className="px-4 py-3">Chen</td><td className="px-4 py-3">Founder & CEO</td>
+                            <td className="px-4 py-3 text-green-600 font-mono text-xs bg-green-50/30">david@chen.io</td><td className="px-4 py-3 text-blue-500 hover:underline text-xs">linkedin.com/in/davidchenio</td>
+                          </tr>
+                          <tr className="hover:bg-slate-50">
+                            <td className="px-4 py-3 text-slate-300 text-center border-r border-slate-50 text-xs">3</td>
+                            <td className="px-4 py-3 font-medium">Elena</td><td className="px-4 py-3">Rostova</td><td className="px-4 py-3">Head of Growth</td>
+                            <td className="px-4 py-3 text-green-600 font-mono text-xs bg-green-50/30">elena.r@growthco.in</td><td className="px-4 py-3 text-blue-500 hover:underline text-xs">linkedin.com/in/erostova</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. CONTENT AGENT (VS Code / Markdown Style) */}
+                {activeAgent.id === 'content' && (
+                  <div className="bg-[#1E1E1E] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+                    <div className="bg-[#2D2D2D] px-4 py-2 border-b border-[#404040] flex items-center space-x-2">
+                      <div className="flex space-x-1.5 mr-4">
+                        <div className="w-3 h-3 rounded-full bg-red-500"></div><div className="w-3 h-3 rounded-full bg-yellow-500"></div><div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      </div>
+                      <div className="bg-[#1E1E1E] text-slate-300 text-xs font-mono px-3 py-1 rounded-t-md border-t border-l border-r border-[#404040] -mb-2 z-10">skincare_seo_blog_final.md</div>
+                    </div>
+                    <div className="p-6 text-[#D4D4D4] font-mono text-sm leading-relaxed overflow-x-auto">
+                      <p><span className="text-blue-400 font-bold">#</span> <span className="text-blue-300 font-bold">The Future of Organic Skincare: Why Vitamin E is Essential</span></p>
+                      <br/>
+                      <p>In a world dominated by synthetic chemicals, the return to organic, plant-based skincare isn't just a trend—it's a necessity. At the forefront of this revolution is <span className="text-orange-300">**Vitamin E**</span>.</p>
+                      <br/>
+                      <p><span className="text-blue-400 font-bold">##</span> <span className="text-blue-300 font-bold">Top 3 Benefits of Natural Vitamin E</span></p>
+                      <br/>
+                      <p><span className="text-purple-400">-</span> <span className="text-orange-300">**Cellular Repair:**</span> Accelerates the healing of micro-abrasions.</p>
+                      <p><span className="text-purple-400">-</span> <span className="text-orange-300">**Antioxidant Barrier:**</span> Defends against urban pollution and UV free radicals.</p>
+                      <p><span className="text-purple-400">-</span> <span className="text-orange-300">**Deep Hydration:**</span> Locks in moisture without clogging pores.</p>
+                      <br/>
+                      <p><span className="text-slate-500 italic">&lt;!-- Target Keyword: Organic Vitamin E Serum --&gt;</span></p>
+                      <p><span className="text-slate-500 italic">&lt;!-- Meta Description: Discover why organic Vitamin E is the ultimate... --&gt;</span></p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. COMPETITOR AGENT (SEMrush / Dashboard Style) */}
+                {activeAgent.id === 'competitor' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                        <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Keyword Gaps Found</div>
+                        <div className="text-3xl font-black text-slate-900">142</div>
+                        <div className="text-xs text-green-600 font-medium mt-2">↑ High Search Volume</div>
+                      </div>
+                      <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                        <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Average Difficulty</div>
+                        <div className="text-3xl font-black text-slate-900">24<span className="text-sm font-medium text-slate-400 ml-1">/100</span></div>
+                        <div className="text-xs text-green-600 font-medium mt-2">Easy to Rank</div>
+                      </div>
+                      <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm border-t-4 border-t-blue-500">
+                        <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Top Opportunity</div>
+                        <div className="text-lg font-bold text-slate-900 truncate">"Pilates near me"</div>
+                        <div className="text-xs text-blue-600 font-medium mt-2">5,600 Vol • KD 12</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm whitespace-nowrap">
+                          <thead className="bg-slate-50 text-slate-500 font-bold text-xs uppercase border-b border-slate-200">
+                            <tr>
+                              <th className="px-4 py-3">Target Keyword</th>
+                              <th className="px-4 py-3">Search Vol</th>
+                              <th className="px-4 py-3">KD Score</th>
+                              <th className="px-4 py-3">Competitor Rank</th>
+                              <th className="px-4 py-3">Your Rank</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-slate-700">
+                            <tr className="hover:bg-slate-50">
+                              <td className="px-4 py-3 font-semibold">"Boutique Pilates near me"</td><td className="px-4 py-3">2,400/mo</td>
+                              <td className="px-4 py-3"><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">12</span></td>
+                              <td className="px-4 py-3">Rank 3 <span className="text-xs text-slate-400">(urbanfit.com)</span></td><td className="px-4 py-3 text-red-500 font-medium">Unranked</td>
+                            </tr>
+                            <tr className="hover:bg-slate-50">
+                              <td className="px-4 py-3 font-semibold">"Reformer classes Bangalore"</td><td className="px-4 py-3">1,800/mo</td>
+                              <td className="px-4 py-3"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">34</span></td>
+                              <td className="px-4 py-3">Rank 1 <span className="text-xs text-slate-400">(urbanfit.com)</span></td><td className="px-4 py-3">Rank 12</td>
+                            </tr>
+                            <tr className="hover:bg-slate-50">
+                              <td className="px-4 py-3 font-semibold">"Pilates vs Yoga weight loss"</td><td className="px-4 py-3">5,600/mo</td>
+                              <td className="px-4 py-3"><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">18</span></td>
+                              <td className="px-4 py-3">Rank 5 <span className="text-xs text-slate-400">(urbanfit.com)</span></td><td className="px-4 py-3 text-red-500 font-medium">Unranked</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. WORKFLOW AGENT (Node UI + JSON) */}
+                {activeAgent.id === 'workflow' && (
+                  <div className="space-y-4">
+                    {/* Visual Node Representation */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 overflow-x-auto shadow-sm">
+                      <div className="flex flex-col items-center">
+                        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm">1. Gmail Trigger</div>
+                        <span className="text-[10px] text-slate-400 mt-1">Watch: "subject:invoice"</span>
+                      </div>
+                      <div className="text-slate-300 font-bold hidden md:block">→</div>
+                      <div className="text-slate-300 font-bold md:hidden">↓</div>
+                      <div className="flex flex-col items-center">
+                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm">2. Google Drive</div>
+                        <span className="text-[10px] text-slate-400 mt-1">Action: Upload File</span>
+                      </div>
+                      <div className="text-slate-300 font-bold hidden md:block">→</div>
+                      <div className="text-slate-300 font-bold md:hidden">↓</div>
+                      <div className="flex flex-col items-center">
+                        <div className="bg-purple-50 border border-purple-200 text-purple-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm">3. Slack Alert</div>
+                        <span className="text-[10px] text-slate-400 mt-1">Action: Send Message</span>
+                      </div>
+                    </div>
+
+                    {/* JSON Code Block */}
+                    <div className="bg-[#0D1117] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+                      <div className="bg-[#161B22] px-4 py-2 border-b border-slate-800 text-xs font-mono text-slate-400">payload_schema.json</div>
+                      <div className="p-4 overflow-x-auto">
+                        <pre className="text-xs text-slate-300 font-mono leading-relaxed">
+<span className="text-blue-400">{"{"}</span>
+  <span className="text-blue-300">"name"</span>: <span className="text-green-300">"Invoice Parsing Workflow"</span>,
+  <span className="text-blue-300">"nodes"</span>: <span className="text-yellow-300">[</span>
+    <span className="text-purple-400">{"{"}</span>
+      <span className="text-blue-300">"id"</span>: <span className="text-green-300">"gmail_trigger_01"</span>,
+      <span className="text-blue-300">"type"</span>: <span className="text-green-300">"n8n-nodes-base.gmailTrigger"</span>,
+      <span className="text-blue-300">"parameters"</span>: <span className="text-orange-300">{"{"}</span>
+        <span className="text-blue-300">"q"</span>: <span className="text-green-300">"has:attachment filename:pdf subject:invoice"</span>
+      <span className="text-orange-300">{"}"}</span>
+    <span className="text-purple-400">{"}"}</span>,
+    <span className="text-slate-500">// ... Google Drive and Slack nodes follow</span>
+  <span className="text-yellow-300">]</span>
+<span className="text-blue-400">{"}"}</span>
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* PRICING COMPARISON */}
-        <section id="pricing" className="bg-black text-white py-20 px-4">
-          {/* ... (Keep existing pricing section identical) ... */}
+        {/* ... (Rest of sections remain identical) ... */}
+        <section id="pricing" className="bg-black text-white py-20 px-4 relative z-0">
           <div className="max-w-5xl mx-auto space-y-12">
             <div className="text-center max-w-2xl mx-auto space-y-4">
               <h2 className="text-3xl font-extrabold tracking-tight">The Anti-SaaS Business Model</h2>
@@ -483,8 +539,7 @@ export default function Home() {
         </section>
 
         {/* INTEGRATIONS */}
-        <section id="integrations" className="bg-white py-20 px-4">
-          {/* ... (Keep existing integrations section identical) ... */}
+        <section id="integrations" className="bg-white py-20 px-4 relative z-0">
           <div className="max-w-5xl mx-auto space-y-12">
             <div className="text-center max-w-2xl mx-auto space-y-4">
               <span className="text-xs font-bold tracking-widest text-blue-600 uppercase bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
@@ -515,7 +570,7 @@ export default function Home() {
         </section>
 
         {/* FOOTER */}
-        <footer className="border-t border-slate-200 bg-white py-12 px-4">
+        <footer className="border-t border-slate-200 bg-white py-12 px-4 relative z-0">
           <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-400 font-medium">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-black rounded flex items-center justify-center text-white font-black text-xs">TE</div>
