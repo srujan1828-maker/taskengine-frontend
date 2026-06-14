@@ -15,6 +15,13 @@ interface AgentDetails {
   desc: string;
   placeholder: string;
   capabilities: string[];
+  estimatedYield?: string;
+  dataPoints?: string[];
+  deliverability?: string;
+  promptGuide?: string;
+  previewLabel: string;
+  previewTitle: string;
+  previewFormat: string;
 }
 
 const AGENTS: AgentDetails[] = [
@@ -24,8 +31,15 @@ const AGENTS: AgentDetails[] = [
     role: 'B2B Lead Generation', 
     icon: '🎯', 
     desc: 'High-accuracy, filtered B2B prospect lists for targeted marketing campaigns.', 
-    placeholder: 'e.g., Boutique coffee shops in Bangalore with public contact details.',
-    capabilities: ['Cross-references public corporate registries', 'Verifies active inbox responses', 'Enriches with LinkedIn firmographic data']
+    placeholder: 'e.g., Boutique coffee shops in Bangalore with public contact details...',
+    capabilities: ['Cross-references public corporate registries', 'Verifies active inbox responses', 'Enriches with LinkedIn firmographic data'],
+    estimatedYield: "Average yield: 150-300 verified contacts per run",
+    deliverability: "95%+ Deliverability (AI Critic SMTP Verified)",
+    dataPoints: ["First & Last Name", "Target Job Title", "Verified B2B Email", "LinkedIn URL", "Company Website"],
+    promptGuide: "Pro Tip: Specify exact titles (e.g., 'Founders'), company size, and exclusions for best results.",
+    previewLabel: "View Sample CSV Output",
+    previewTitle: "te_leads_export.csv",
+    previewFormat: "CSV / Excel Data"
   },
   { 
     id: 'content', 
@@ -34,7 +48,13 @@ const AGENTS: AgentDetails[] = [
     icon: '✍️', 
     desc: 'Search-optimized long-form blogs paired with platform-specific social captions.', 
     placeholder: 'e.g., Write a promo for an organic vitamin-E skincare lotion.',
-    capabilities: ['Analyzes top 10 live SERP competitors', 'Embeds semantic LSI keywords', 'Formats in production-ready Markdown']
+    capabilities: ['Analyzes top 10 live SERP competitors', 'Embeds semantic LSI keywords', 'Formats in production-ready Markdown'],
+    estimatedYield: "1 Long-Form Blog (1,500+ words) & 3 Social Assets",
+    dataPoints: ["SEO Optimized Markdown File", "Meta Title & Description", "LinkedIn Text Asset", "Twitter/X Thread"],
+    promptGuide: "Pro Tip: Provide your primary keyword, brand voice (e.g., 'professional but witty'), and target audience.",
+    previewLabel: "View Sample Blog Draft",
+    previewTitle: "skincare_seo_blog_final.md",
+    previewFormat: "Markdown Document"
   },
   { 
     id: 'competitor', 
@@ -43,7 +63,13 @@ const AGENTS: AgentDetails[] = [
     icon: '🕵️', 
     desc: 'Deep-dive SEO keyword gap reports comparing your site against a market rival.', 
     placeholder: 'e.g., Compare my boutique fitness studio in Bangalore to local competitors...',
-    capabilities: ['Extracts competitor sitemap structures', 'Identifies high-volume keyword gaps', 'Outputs direct technical action plans']
+    capabilities: ['Extracts competitor sitemap structures', 'Identifies high-volume keyword gaps', 'Outputs direct technical action plans'],
+    estimatedYield: "Complete Technical Audit & 50+ Keyword Gaps",
+    dataPoints: ["Search Volume Metrics", "Keyword Difficulty Scores", "Competitor URL Mapping", "Actionable Next Steps"],
+    promptGuide: "Pro Tip: Include your domain URL and your top 2 biggest competitors' URLs.",
+    previewLabel: "View Sample SEO Report",
+    previewTitle: "competitor_gap_analysis.csv",
+    previewFormat: "Data Table / CSV"
   },
   { 
     id: 'workflow', 
@@ -52,13 +78,20 @@ const AGENTS: AgentDetails[] = [
     icon: '⚙️', 
     desc: 'Text-based logic workflows mapping out how to connect disparate office systems.', 
     placeholder: 'e.g., When an invoice hits Gmail, save to Drive and alert Slack.',
-    capabilities: ['Maps exact JSON payload structures', 'Defines conditional branching logic', 'Outputs ready-to-build n8n/Zapier steps']
+    capabilities: ['Maps exact JSON payload structures', 'Defines conditional branching logic', 'Outputs ready-to-build n8n/Zapier steps'],
+    estimatedYield: "Step-by-step logic map & payload JSON",
+    dataPoints: ["Trigger Webhook Configs", "Authentication Requirements", "Data Mapping Nodes", "Error Handling Logic"],
+    promptGuide: "Pro Tip: Clearly state the trigger app, the exact data you want moved, and the final destination app.",
+    previewLabel: "View Sample Logic Schema",
+    previewTitle: "invoice_automation_schema.json",
+    previewFormat: "JSON / Code Block"
   },
 ];
 
 export default function Home() {
   const router = useRouter();
   const [activeAgent, setActiveAgent] = useState<AgentDetails>(AGENTS[0]);
+  const [showPreview, setShowPreview] = useState(false);
   
   const [inputs, setInputs] = useState({
     lead: { prompt: "", email: "" },
@@ -72,6 +105,11 @@ export default function Home() {
       ...prev,
       [agent]: { ...prev[agent], [field]: value }
     }));
+  };
+
+  const handleTabSwitch = (agent: AgentDetails) => {
+    setActiveAgent(agent);
+    setShowPreview(false); // Close preview automatically if they switch tabs
   };
 
   const handleCheckout = async (agentKey: AgentKey, agentName: string) => {
@@ -90,7 +128,7 @@ export default function Home() {
       name: "TaskEngine",
       description: `Hire ${agentName}`,
       image: "https://taskengine.software/logo.png", 
-      handler: function (response: any) {
+      handler: function () {
         router.push('/success');
       },
       prefill: { email: email },
@@ -149,7 +187,7 @@ export default function Home() {
               return (
                 <button
                   key={agent.id}
-                  onClick={() => setActiveAgent(agent)}
+                  onClick={() => handleTabSwitch(agent)}
                   className={`p-4 text-left rounded-xl border-2 transition-all duration-200 ${
                     isActive 
                       ? 'border-black bg-white shadow-sm scale-[1.02]' 
@@ -164,8 +202,10 @@ export default function Home() {
             })}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col md:flex-row gap-8">
-            <div className="md:w-1/2 space-y-6">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col md:flex-row gap-8 relative overflow-hidden">
+            
+            {/* Left Column: Context & Parameters */}
+            <div className="md:w-1/2 space-y-6 relative z-10">
               <div>
                 <div className="flex items-center space-x-3">
                   <span className="text-3xl">{activeAgent.icon}</span>
@@ -179,24 +219,52 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-2">
-                <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Execution Pipeline</span>
-                <ul className="space-y-2">
-                  {activeAgent.capabilities.map((cap, idx) => (
-                    <li key={idx} className="text-sm text-slate-600 flex items-start space-x-2">
-                      <span className="text-green-500 shrink-0">✓</span>
-                      <span>{cap}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="space-y-4">
+                {activeAgent.deliverability && (
+                  <div className="inline-flex items-center space-x-2 bg-green-50 border border-green-200 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span>{activeAgent.deliverability}</span>
+                  </div>
+                )}
+
+                <div className="bg-slate-50 border border-slate-100 rounded-xl p-5 space-y-4">
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">The Deliverable</span>
+                    {activeAgent.estimatedYield && (
+                      <p className="text-sm text-slate-600 font-medium mt-1">{activeAgent.estimatedYield}</p>
+                    )}
+                  </div>
+                  
+                  {activeAgent.dataPoints && (
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Included Extraction Data:</span>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        {activeAgent.dataPoints.map((point, idx) => (
+                          <div key={idx} className="flex items-center space-x-1.5 text-xs text-slate-600 font-medium bg-white border border-slate-200 py-1 px-2 rounded-md">
+                            <span className="text-blue-500">❖</span>
+                            <span className="truncate">{point}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="md:w-1/2 space-y-4 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8">
+            {/* Right Column: Input & Checkout */}
+            <div className="md:w-1/2 space-y-4 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8 relative z-10">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Operational Instructions</label>
+                <div className="flex justify-between items-end">
+                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Operational Instructions</label>
+                  {activeAgent.promptGuide && (
+                    <span className="text-[10px] font-medium text-slate-400 max-w-[200px] text-right leading-tight">
+                      {activeAgent.promptGuide}
+                    </span>
+                  )}
+                </div>
                 <textarea
-                  rows={3}
+                  rows={4}
                   placeholder={activeAgent.placeholder}
                   className="w-full text-sm p-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none bg-slate-50/50 placeholder:text-slate-300 font-normal transition"
                   value={inputs[activeAgent.id].prompt}
@@ -226,18 +294,166 @@ export default function Home() {
                 </button>
                 
                 <div className="flex items-center justify-between px-1">
-                  <button onClick={() => alert("Sample output preview coming soon!")} className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition underline underline-offset-2">
-                    View Sample Output
+                  <button 
+                    onClick={() => setShowPreview(!showPreview)} 
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition underline underline-offset-2 flex items-center gap-1"
+                  >
+                    {showPreview ? "Hide Preview" : activeAgent.previewLabel}
                   </button>
-                  <span className="text-xs font-medium text-slate-500">🔒 Guaranteed accurate, or the run is free.</span>
+                  <span className="text-xs font-medium text-slate-500 ml-auto">🔒 Secure Escrow via Razorpay</span>
                 </div>
               </div>
             </div>
+
+            {/* ✨ DYNAMIC VISUAL PROOF (OVERLAY) */}
+            {showPreview && (
+              <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-20 p-6 md:p-8 flex flex-col border border-slate-200 rounded-2xl animate-fade-in overflow-y-auto">
+                <div className="flex justify-between items-center mb-6 shrink-0">
+                  <div>
+                    <h3 className="font-bold text-lg">Sample Execution Payload</h3>
+                    <p className="text-xs text-slate-500">Delivered as `{activeAgent.previewTitle}` ({activeAgent.previewFormat})</p>
+                  </div>
+                  <button onClick={() => setShowPreview(false)} className="text-slate-400 hover:text-black">
+                    ✕ Close
+                  </button>
+                </div>
+                
+                {/* DYNAMIC CONTENT BLOCK */}
+                <div className="flex-grow rounded-lg border border-slate-200 shadow-sm bg-white overflow-hidden">
+                  
+                  {/* LEAD AGENT PREVIEW (CSV) */}
+                  {activeAgent.id === 'lead' && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs whitespace-nowrap">
+                        <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
+                          <tr>
+                            <th className="px-4 py-3 border-b">First Name</th>
+                            <th className="px-4 py-3 border-b">Last Name</th>
+                            <th className="px-4 py-3 border-b">Job Title</th>
+                            <th className="px-4 py-3 border-b">Verified Email</th>
+                            <th className="px-4 py-3 border-b">Company</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
+                          <tr>
+                            <td className="px-4 py-3">Sarah</td><td className="px-4 py-3">Jenkins</td><td className="px-4 py-3">VP Marketing</td>
+                            <td className="px-4 py-3 text-green-600 font-medium">s.jenkins@acme.corp</td><td className="px-4 py-3 text-blue-500 underline">acme.corp</td>
+                          </tr>
+                          <tr className="bg-slate-50/50">
+                            <td className="px-4 py-3">David</td><td className="px-4 py-3">Chen</td><td className="px-4 py-3">Founder</td>
+                            <td className="px-4 py-3 text-green-600 font-medium">david@chen.io</td><td className="px-4 py-3 text-blue-500 underline">chen.io</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3">Elena</td><td className="px-4 py-3">Rostova</td><td className="px-4 py-3">Head of Growth</td>
+                            <td className="px-4 py-3 text-green-600 font-medium">elena.r@growthco.in</td><td className="px-4 py-3 text-blue-500 underline">growthco.in</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* CONTENT AGENT PREVIEW (Markdown) */}
+                  {activeAgent.id === 'content' && (
+                    <div className="p-6 text-sm text-slate-700 font-serif leading-relaxed h-full overflow-y-auto">
+                      <h1 className="text-2xl font-bold mb-4 font-sans"># The Future of Organic Skincare: Why Vitamin E is Essential</h1>
+                      <p className="mb-4">In a world dominated by synthetic chemicals, the return to organic, plant-based skincare isn't just a trend—it's a necessity. At the forefront of this revolution is **Vitamin E**.</p>
+                      <h2 className="text-lg font-bold mt-6 mb-2 font-sans">## Top 3 Benefits of Natural Vitamin E</h2>
+                      <ul className="list-disc pl-5 mb-4 space-y-1">
+                        <li><strong>Cellular Repair:</strong> Accelerates the healing of micro-abrasions.</li>
+                        <li><strong>Antioxidant Barrier:</strong> Defends against urban pollution and UV free radicals.</li>
+                        <li><strong>Deep Hydration:</strong> Locks in moisture without clogging pores.</li>
+                      </ul>
+                      <p className="italic text-slate-500">...[Article continues for 1,200 words]...</p>
+                    </div>
+                  )}
+
+                  {/* COMPETITOR AGENT PREVIEW (SEO Table) */}
+                  {activeAgent.id === 'competitor' && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs whitespace-nowrap">
+                        <thead className="bg-slate-50 text-slate-500 font-bold uppercase">
+                          <tr>
+                            <th className="px-4 py-3 border-b">Target Keyword</th>
+                            <th className="px-4 py-3 border-b">Search Vol</th>
+                            <th className="px-4 py-3 border-b">KD Score</th>
+                            <th className="px-4 py-3 border-b">Competitor Rank</th>
+                            <th className="px-4 py-3 border-b">Your Rank</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
+                          <tr>
+                            <td className="px-4 py-3 font-semibold">"Boutique Pilates near me"</td><td className="px-4 py-3">2,400/mo</td><td className="px-4 py-3 text-green-600 font-bold">12 (Easy)</td>
+                            <td className="px-4 py-3">Rank 3 (urbanfit.com)</td><td className="px-4 py-3 text-red-500">Unranked</td>
+                          </tr>
+                          <tr className="bg-slate-50/50">
+                            <td className="px-4 py-3 font-semibold">"Reformer classes Bangalore"</td><td className="px-4 py-3">1,800/mo</td><td className="px-4 py-3 text-yellow-600 font-bold">34 (Med)</td>
+                            <td className="px-4 py-3">Rank 1 (urbanfit.com)</td><td className="px-4 py-3">Rank 12</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3 font-semibold">"Pilates vs Yoga weight loss"</td><td className="px-4 py-3">5,600/mo</td><td className="px-4 py-3 text-green-600 font-bold">18 (Easy)</td>
+                            <td className="px-4 py-3">Rank 5 (urbanfit.com)</td><td className="px-4 py-3 text-red-500">Unranked</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* WORKFLOW AGENT PREVIEW (JSON/Code) */}
+                  {activeAgent.id === 'workflow' && (
+                    <div className="bg-[#0D1117] p-5 h-full overflow-y-auto">
+                      <pre className="text-[11px] text-green-400 font-mono leading-relaxed">
+{`{
+  "name": "Invoice Parsing Workflow",
+  "nodes": [
+    {
+      "id": "gmail_trigger_01",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "parameters": {
+        "pollTimes": {"item": [{"mode": "everyMinute"}]},
+        "q": "has:attachment filename:pdf subject:invoice"
+      }
+    },
+    {
+      "id": "google_drive_02",
+      "type": "n8n-nodes-base.googleDrive",
+      "parameters": {
+        "operation": "upload",
+        "fileContent": "={{$json.attachment}}",
+        "folderId": "1aBcD2eFgH3iJkL"
+      }
+    },
+    {
+      "id": "slack_alert_03",
+      "type": "n8n-nodes-base.slack",
+      "parameters": {
+        "channel": "#finance-alerts",
+        "text": "=New invoice saved to Drive: {{$json.fileName}}"
+      }
+    }
+  ]
+}`}
+                      </pre>
+                    </div>
+                  )}
+
+                </div>
+
+                <div className="pt-6 text-center shrink-0">
+                  <button 
+                    onClick={() => setShowPreview(false)} 
+                    className="bg-black text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:bg-slate-800 transition"
+                  >
+                    Looks Good, Return to Configurator
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
         {/* PRICING COMPARISON */}
         <section id="pricing" className="bg-black text-white py-20 px-4">
+          {/* ... (Keep existing pricing section identical) ... */}
           <div className="max-w-5xl mx-auto space-y-12">
             <div className="text-center max-w-2xl mx-auto space-y-4">
               <h2 className="text-3xl font-extrabold tracking-tight">The Anti-SaaS Business Model</h2>
@@ -268,6 +484,7 @@ export default function Home() {
 
         {/* INTEGRATIONS */}
         <section id="integrations" className="bg-white py-20 px-4">
+          {/* ... (Keep existing integrations section identical) ... */}
           <div className="max-w-5xl mx-auto space-y-12">
             <div className="text-center max-w-2xl mx-auto space-y-4">
               <span className="text-xs font-bold tracking-widest text-blue-600 uppercase bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
@@ -297,7 +514,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* UPDATED FOOTER */}
+        {/* FOOTER */}
         <footer className="border-t border-slate-200 bg-white py-12 px-4">
           <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-400 font-medium">
             <div className="flex items-center space-x-2">
