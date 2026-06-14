@@ -13,13 +13,46 @@ interface AgentDetails {
   icon: string;
   desc: string;
   placeholder: string;
+  capabilities: string[]; // ✨ Added: Explicit data parameters for transparency
 }
 
 const AGENTS: AgentDetails[] = [
-  { id: 'lead', name: 'The Lead Agent', role: 'B2B Lead Generation', icon: '🎯', desc: 'High-accuracy, filtered B2B prospect lists for targeted marketing campaigns.', placeholder: 'e.g., Boutique coffee shops in Bangalore with public contact details.' },
-  { id: 'content', name: 'The Content Agent', role: 'Conversion Copywriter', icon: '✍️', desc: 'Search-optimized long-form blogs paired with platform-specific social captions.', placeholder: 'e.g., Write a promo for an organic vitamin-E skincare lotion.' },
-  { id: 'competitor', name: 'The Competitor Agent', role: 'SEO Strategist', icon: '🕵️', desc: 'Deep-dive SEO keyword gap reports comparing your site against a market rival.', placeholder: 'e.g., Compare my boutique fitness studio in Bangalore to local competitors...' },
-  { id: 'workflow', name: 'The Workflow Agent', role: 'No-Code Architect', icon: '⚙️', desc: 'Text-based logic workflows mapping out how to connect disparate office systems.', placeholder: 'e.g., When an invoice hits Gmail, save to Drive and alert Slack.' },
+  { 
+    id: 'lead', 
+    name: 'The Lead Agent', 
+    role: 'B2B Lead Generation', 
+    icon: '🎯', 
+    desc: 'High-accuracy, filtered B2B prospect lists for targeted marketing campaigns.', 
+    placeholder: 'e.g., Boutique coffee shops in Bangalore with public contact details.',
+    capabilities: ['Cross-references public corporate registries', 'Verifies active inbox responses', 'Enriches with LinkedIn firmographic data']
+  },
+  { 
+    id: 'content', 
+    name: 'The Content Agent', 
+    role: 'Conversion Copywriter', 
+    icon: '✍️', 
+    desc: 'Search-optimized long-form blogs paired with platform-specific social captions.', 
+    placeholder: 'e.g., Write a promo for an organic vitamin-E skincare lotion.',
+    capabilities: ['Analyzes top 10 live SERP competitors', 'Embeds semantic LSI keywords', 'Formats in production-ready Markdown']
+  },
+  { 
+    id: 'competitor', 
+    name: 'The Competitor Agent', 
+    role: 'SEO Strategist', 
+    icon: '🕵️', 
+    desc: 'Deep-dive SEO keyword gap reports comparing your site against a market rival.', 
+    placeholder: 'e.g., Compare my boutique fitness studio in Bangalore to local competitors...',
+    capabilities: ['Extracts competitor sitemap structures', 'Identifies high-volume keyword gaps', 'Outputs direct technical action plans']
+  },
+  { 
+    id: 'workflow', 
+    name: 'The Workflow Agent', 
+    role: 'No-Code Architect', 
+    icon: '⚙️', 
+    desc: 'Text-based logic workflows mapping out how to connect disparate office systems.', 
+    placeholder: 'e.g., When an invoice hits Gmail, save to Drive and alert Slack.',
+    capabilities: ['Maps exact JSON payload structures', 'Defines conditional branching logic', 'Outputs ready-to-build n8n/Zapier steps']
+  },
 ];
 
 export default function Home() {
@@ -60,11 +93,7 @@ export default function Home() {
         router.push('/success');
       },
       prefill: { email: email },
-      notes: {
-        customer_email: email, 
-        prompt: prompt,
-        agent_type: agentName
-      },
+      notes: { customer_email: email, prompt: prompt, agent_type: agentName },
       theme: { color: "#000000" },
     };
 
@@ -78,25 +107,18 @@ export default function Home() {
       
       <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-black selection:text-white">
         
-        {/* 🌐 1. REAL NAVBAR COMPONENT */}
+        {/* NAVBAR */}
         <nav className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-200/50">
           <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            {/* Logo Group */}
             <div className="flex items-center space-x-2 cursor-pointer">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-black text-sm tracking-tighter">
-                TE
-              </div>
-              <span className="font-extrabold text-xl tracking-tight text-slate-900">TaskEngine<span className="text-slate-400">.software</span></span>
+              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-black text-sm tracking-tighter">TE</div>
+              <span className="font-extrabold text-xl tracking-tight text-slate-900">TaskEngine</span>
             </div>
-            
-            {/* Nav Menu */}
             <div className="hidden sm:flex items-center space-x-6 text-sm font-medium text-slate-600">
-              <a href="#how-it-works" className="hover:text-black transition">How it Works</a>
-              <a href="#workspace" className="hover:text-black transition">Agents Workspace</a>
-              <a href="#features" className="hover:text-black transition">Core Benefits</a>
+              <a href="#workspace" className="hover:text-black transition">Agents</a>
+              <a href="#pricing" className="hover:text-black transition">Pricing Model</a>
+              <a href="#integrations" className="hover:text-black transition">Zero-Setup</a>
             </div>
-
-            {/* CTA Header Button */}
             <div>
               <a href="#workspace" className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-slate-800 transition">
                 Launch Console
@@ -105,26 +127,34 @@ export default function Home() {
           </div>
         </nav>
 
-        {/* 📢 2. PREMIUM HERO SECTION */}
-        <header className="max-w-4xl mx-auto pt-24 pb-12 text-center px-4">
-          <span className="text-xs font-bold tracking-widest text-slate-400 uppercase bg-slate-200/50 px-3 py-1 rounded-full">
-            Autonomous multi-agent platform
+        {/* HERO SECTION */}
+        <header className="max-w-5xl mx-auto pt-24 pb-8 text-center px-4">
+          <span className="text-xs font-bold tracking-widest text-slate-500 uppercase bg-slate-200/50 px-3 py-1 rounded-full border border-slate-200">
+            No subscriptions. No retainers. Just execution.
           </span>
-          <h1 className="mt-4 text-4xl font-extrabold tracking-tight sm:text-6xl bg-gradient-to-r from-black via-slate-800 to-slate-900 bg-clip-text text-transparent leading-none">
+          <h1 className="mt-6 text-4xl font-extrabold tracking-tight sm:text-6xl bg-gradient-to-r from-black via-slate-800 to-slate-900 bg-clip-text text-transparent leading-none">
             Outsource Operations to Digital Specialists
           </h1>
           <p className="mt-6 text-lg md:text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
-            Stop configuring complex AI rules. Select a pre-trained specialist agent, define your targets, and get flawless executive reports dropped straight into your inbox.
+            Stop paying thousands for unused SaaS seats. Select a pre-trained agent, define your exact target, and get flawless executive reports dropped straight into your inbox.
           </p>
+          
+          {/* ✨ Added: Trust Signals & Social Proof */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-slate-500">
+            <div className="flex items-center space-x-2">
+              <span className="text-yellow-500 text-lg">★★★★★</span>
+              <span>4.9/5 Average Execution Rating</span>
+            </div>
+            <div className="hidden sm:block w-1 h-1 bg-slate-300 rounded-full"></div>
+            <div className="flex items-center space-x-2">
+              <span className="text-green-500 text-lg">✓</span>
+              <span>240+ Operations run this week</span>
+            </div>
+          </div>
         </header>
 
-        {/* 💻 3. CORE INTERACTIVE WORKSPACE (OUR COMPONENT) */}
-        <section id="workspace" className="max-w-4xl mx-auto px-4 pb-16 space-y-6 scroll-mt-20">
-          <div className="text-center sm:text-left">
-            <h2 className="text-2xl font-extrabold tracking-tight">Agent Console</h2>
-            <p className="text-sm text-slate-400 font-medium">Configure live parameters to immediately dispatch an execution worker.</p>
-          </div>
-
+        {/* INTERACTIVE WORKSPACE */}
+        <section id="workspace" className="max-w-5xl mx-auto px-4 pb-20 pt-8 space-y-6 scroll-mt-20">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {AGENTS.map((agent) => {
               const isActive = activeAgent.id === agent.id;
@@ -146,125 +176,155 @@ export default function Home() {
             })}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
-            <div>
-              <div className="flex items-center space-x-3">
-                <span className="text-3xl">{activeAgent.icon}</span>
-                <div>
-                  <h2 className="text-xl font-bold tracking-tight">{activeAgent.name}</h2>
-                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">{activeAgent.role}</p>
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col md:flex-row gap-8">
+            
+            {/* Left Column: Context & Parameters */}
+            <div className="md:w-1/2 space-y-6">
+              <div>
+                <div className="flex items-center space-x-3">
+                  <span className="text-3xl">{activeAgent.icon}</span>
+                  <div>
+                    <h2 className="text-xl font-bold tracking-tight">{activeAgent.name}</h2>
+                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">{activeAgent.role}</p>
+                  </div>
                 </div>
+                <p className="text-sm text-slate-500 mt-3 leading-relaxed">
+                  {activeAgent.desc}
+                </p>
               </div>
-              <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-                {activeAgent.desc}
-              </p>
+
+              {/* ✨ Added: Clearer Agent Parameters */}
+              <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-2">
+                <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Execution Pipeline</span>
+                <ul className="space-y-2">
+                  {activeAgent.capabilities.map((cap, idx) => (
+                    <li key={idx} className="text-sm text-slate-600 flex items-start space-x-2">
+                      <span className="text-green-500 shrink-0">✓</span>
+                      <span>{cap}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
 
-            <hr className="border-slate-100" />
-
-            <div className="space-y-4">
+            {/* Right Column: Input & Checkout */}
+            <div className="md:w-1/2 space-y-4 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                  Operational Parameters / Instructions
-                </label>
+                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Operational Instructions</label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   placeholder={activeAgent.placeholder}
-                  className="w-full text-sm p-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none bg-slate-50/50 placeholder:text-slate-400 font-normal transition"
+                  className="w-full text-sm p-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none bg-slate-50/50 placeholder:text-slate-300 font-normal transition"
                   value={inputs[activeAgent.id].prompt}
                   onChange={(e) => handleInputChange(activeAgent.id, 'prompt', e.target.value)}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                  Target Destination Inbox
-                </label>
+                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Target Destination Inbox</label>
                 <input
                   type="email"
-                  placeholder="Your delivery email (e.g., operator@company.com)"
-                  className="w-full text-sm p-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent bg-slate-50/50 placeholder:text-slate-400 font-normal transition"
+                  placeholder="operator@company.com"
+                  className="w-full text-sm p-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent bg-slate-50/50 placeholder:text-slate-300 font-normal transition"
                   value={inputs[activeAgent.id].email}
                   onChange={(e) => handleInputChange(activeAgent.id, 'email', e.target.value)}
                 />
               </div>
+
+              <div className="pt-2 flex flex-col space-y-3">
+                <button 
+                  onClick={() => handleCheckout(activeAgent.id, activeAgent.name)}
+                  className="w-full bg-black text-white py-4 px-6 rounded-xl text-base font-bold hover:bg-slate-900 active:scale-[0.99] transition-all shadow-md flex items-center justify-center space-x-2"
+                >
+                  <span>Initialize Execution</span>
+                  <span className="text-slate-400">|</span>
+                  <span className="text-slate-200">₹1,500</span>
+                </button>
+                
+                {/* ✨ Added: Visual Proof CTA & Guarantee */}
+                <div className="flex items-center justify-between px-1">
+                  <button onClick={() => alert("Modal popping up with mock CSV/Markdown preview!")} className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition underline underline-offset-2">
+                    View Sample Output
+                  </button>
+                  <span className="text-xs font-medium text-slate-500">🔒 Guaranteed accurate, or the run is free.</span>
+                </div>
+              </div>
             </div>
 
-            <button 
-              onClick={() => handleCheckout(activeAgent.id, activeAgent.name)}
-              className="w-full bg-black text-white py-4 px-6 rounded-xl text-base font-bold hover:bg-slate-900 active:scale-[0.99] transition-all duration-150 shadow-md shadow-slate-900/10 flex items-center justify-center space-x-2"
-            >
-              <span>Initialize {activeAgent.name}</span>
-              <span className="text-xs font-normal text-slate-400">|</span>
-              <span className="text-sm font-medium text-slate-200">₹1,500 flat rate</span>
-            </button>
           </div>
         </section>
 
-        {/* 🛠️ 4. "HOW IT WORKS" COMPONENT */}
-        <section id="how-it-works" className="bg-white border-y border-slate-200/80 py-20 px-4 scroll-mt-16">
+        {/* ✨ Added: BUSINESS MODEL / PRICING COMPARISON */}
+        <section id="pricing" className="bg-black text-white py-20 px-4">
           <div className="max-w-5xl mx-auto space-y-12">
-            <div className="text-center max-w-xl mx-auto space-y-3">
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">Three Steps to Direct Execution</h2>
-              <p className="text-slate-500 text-sm font-medium">TaskEngine abstracts standard API pipelines into a straightforward on-demand transaction model.</p>
+            <div className="text-center max-w-2xl mx-auto space-y-4">
+              <h2 className="text-3xl font-extrabold tracking-tight">The Anti-SaaS Business Model</h2>
+              <p className="text-slate-400 font-medium text-lg">Stop paying software retainers for agents you only use twice a month.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl opacity-75">
+                <h3 className="text-red-400 font-bold text-sm tracking-wider uppercase mb-4">The Industry Standard</h3>
+                <ul className="space-y-4 text-slate-300 text-sm">
+                  <li className="flex items-center space-x-3"><span className="text-slate-600">✕</span><span>$500 to $2,000 monthly retainers</span></li>
+                  <li className="flex items-center space-x-3"><span className="text-slate-600">✕</span><span>Unused credits expire at month end</span></li>
+                  <li className="flex items-center space-x-3"><span className="text-slate-600">✕</span><span>Requires credit card on file to test</span></li>
+                </ul>
+              </div>
+              <div className="bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700 p-8 rounded-2xl shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-green-500 text-black text-[10px] font-bold px-3 py-1 rounded-bl-lg tracking-wider uppercase">Our Model</div>
+                <h3 className="text-white font-bold text-sm tracking-wider uppercase mb-4">The TaskEngine Approach</h3>
+                <ul className="space-y-4 text-white text-sm font-medium">
+                  <li className="flex items-center space-x-3"><span className="text-green-400">✓</span><span>Flat ₹1,500 transactional fee per run</span></li>
+                  <li className="flex items-center space-x-3"><span className="text-green-400">✓</span><span>No subscriptions or hidden recurring charges</span></li>
+                  <li className="flex items-center space-x-3"><span className="text-green-400">✓</span><span>Pay exactly and only for the operations you need</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ✨ Added: THE INTEGRATION NARRATIVE */}
+        <section id="integrations" className="bg-white py-20 px-4">
+          <div className="max-w-5xl mx-auto space-y-12">
+            <div className="text-center max-w-2xl mx-auto space-y-4">
+              <span className="text-xs font-bold tracking-widest text-blue-600 uppercase bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                Zero-Integration Setup
+              </span>
+              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">No IT Approval. No API Keys.</h2>
+              <p className="text-slate-500 font-medium text-lg">Other platforms take 3 weeks to connect securely to your Salesforce instances. We engineered TaskEngine to bypass the red tape entirely.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="space-y-3 p-4">
                 <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold border border-slate-200">1</div>
                 <h4 className="font-bold text-lg">Define Target Scope</h4>
-                <p className="text-sm text-slate-500 leading-relaxed">Choose your targeted operational expert block and submit your structured goals or context prompts.</p>
+                <p className="text-sm text-slate-500 leading-relaxed">Provide raw text instructions in our console. You do not need to give us database read/write access.</p>
               </div>
               <div className="space-y-3 p-4">
                 <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold border border-slate-200">2</div>
-                <h4 className="font-bold text-lg">Secure Instant Escrow</h4>
-                <p className="text-sm text-slate-500 leading-relaxed">Authorize your specialized run directly via an encrypted Razorpay ledger gateway for a transparent flat fee.</p>
+                <h4 className="font-bold text-lg">Secure Ephemeral Runs</h4>
+                <p className="text-sm text-slate-500 leading-relaxed">Your data is processed inside isolated cloud instances that destroy themselves the second the task completes.</p>
               </div>
               <div className="space-y-3 p-4">
                 <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold border border-slate-200">3</div>
                 <h4 className="font-bold text-lg">Asynchronous Inbox Intake</h4>
-                <p className="text-sm text-slate-500 leading-relaxed">Our execution nodes run parallel loops alongside strict AI Critic verification before emailing cleanly compiled data modules.</p>
+                <p className="text-sm text-slate-500 leading-relaxed">The final structured data (CSV/Markdown) is emailed straight to you. Just forward it to your team and get to work.</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ⚡ 5. VALUE PROPOSITION FEATURES COMPONENT */}
-        <section id="features" className="max-w-5xl mx-auto px-4 py-20 scroll-mt-16 space-y-12">
-          <div className="text-center max-w-xl mx-auto space-y-3">
-            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">Engineered for Accuracy</h2>
-            <p className="text-slate-500 text-sm font-medium">Why tech operators run business workflows via TaskEngine nodes rather than prompt playgrounds.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="bg-white border border-slate-200 p-6 rounded-2xl flex gap-4">
-              <span className="text-2xl">🤖</span>
-              <div className="space-y-1">
-                <h5 className="font-bold text-base">Multi-Agent Critique Models</h5>
-                <p className="text-xs text-slate-500 leading-relaxed">We process operations through sequential specialized layers: an initial high-throughput worker node evaluated by an automated quality-assurance validation critic.</p>
-              </div>
-            </div>
-            <div className="bg-white border border-slate-200 p-6 rounded-2xl flex gap-4">
-              <span className="text-2xl">🔒</span>
-              <div className="space-y-1">
-                <h5 className="font-bold text-base">Ephemeral Serverless Runs</h5>
-                <p className="text-xs text-slate-500 leading-relaxed">Your custom execution logic fires securely inside isolated cloud environments. Your context data vanishes instantly the moment fulfillment transfers over to your email server.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 📝 6. PREMIUM FOOTER COMPONENT */}
         <footer className="border-t border-slate-200 bg-white py-12 px-4">
           <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-400 font-medium">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-black rounded flex items-center justify-center text-white font-black text-xs">TE</div>
-              <span className="font-bold text-slate-700">© 2026 TaskEngine.software</span>
+              <span className="font-bold text-slate-700">© 2026 TaskEngine</span>
             </div>
             <div className="flex space-x-6">
-              <span>Terms of Service</span>
-              <span>Privacy Policy</span>
-              <span>Fulfillment Status</span>
+              <a href="#" className="hover:text-slate-900 transition">Terms of Service</a>
+              <a href="#" className="hover:text-slate-900 transition">Privacy Policy</a>
+              <a href="#" className="hover:text-slate-900 transition">Contact Operators</a>
             </div>
           </div>
         </footer>
