@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
+import Link from 'next/link';
 
 type AgentKey = 'lead' | 'content' | 'competitor' | 'workflow';
 
@@ -13,7 +14,7 @@ interface AgentDetails {
   icon: string;
   desc: string;
   placeholder: string;
-  capabilities: string[]; // ✨ Added: Explicit data parameters for transparency
+  capabilities: string[];
 }
 
 const AGENTS: AgentDetails[] = [
@@ -138,19 +139,6 @@ export default function Home() {
           <p className="mt-6 text-lg md:text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
             Stop paying thousands for unused SaaS seats. Select a pre-trained agent, define your exact target, and get flawless executive reports dropped straight into your inbox.
           </p>
-          
-          {/* ✨ Added: Trust Signals & Social Proof */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm font-medium text-slate-500">
-            <div className="flex items-center space-x-2">
-              <span className="text-yellow-500 text-lg">★★★★★</span>
-              <span>4.9/5 Average Execution Rating</span>
-            </div>
-            <div className="hidden sm:block w-1 h-1 bg-slate-300 rounded-full"></div>
-            <div className="flex items-center space-x-2">
-              <span className="text-green-500 text-lg">✓</span>
-              <span>240+ Operations run this week</span>
-            </div>
-          </div>
         </header>
 
         {/* INTERACTIVE WORKSPACE */}
@@ -177,8 +165,6 @@ export default function Home() {
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col md:flex-row gap-8">
-            
-            {/* Left Column: Context & Parameters */}
             <div className="md:w-1/2 space-y-6">
               <div>
                 <div className="flex items-center space-x-3">
@@ -193,7 +179,6 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* ✨ Added: Clearer Agent Parameters */}
               <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-2">
                 <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Execution Pipeline</span>
                 <ul className="space-y-2">
@@ -207,7 +192,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right Column: Input & Checkout */}
             <div className="md:w-1/2 space-y-4 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Operational Instructions</label>
@@ -241,20 +225,18 @@ export default function Home() {
                   <span className="text-slate-200">₹1,500</span>
                 </button>
                 
-                {/* ✨ Added: Visual Proof CTA & Guarantee */}
                 <div className="flex items-center justify-between px-1">
-                  <button onClick={() => alert("Modal popping up with mock CSV/Markdown preview!")} className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition underline underline-offset-2">
+                  <button onClick={() => alert("Sample output preview coming soon!")} className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition underline underline-offset-2">
                     View Sample Output
                   </button>
                   <span className="text-xs font-medium text-slate-500">🔒 Guaranteed accurate, or the run is free.</span>
                 </div>
               </div>
             </div>
-
           </div>
         </section>
 
-        {/* ✨ Added: BUSINESS MODEL / PRICING COMPARISON */}
+        {/* PRICING COMPARISON */}
         <section id="pricing" className="bg-black text-white py-20 px-4">
           <div className="max-w-5xl mx-auto space-y-12">
             <div className="text-center max-w-2xl mx-auto space-y-4">
@@ -284,7 +266,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ✨ Added: THE INTEGRATION NARRATIVE */}
+        {/* INTEGRATIONS */}
         <section id="integrations" className="bg-white py-20 px-4">
           <div className="max-w-5xl mx-auto space-y-12">
             <div className="text-center max-w-2xl mx-auto space-y-4">
@@ -315,6 +297,7 @@ export default function Home() {
           </div>
         </section>
 
+        {/* UPDATED FOOTER */}
         <footer className="border-t border-slate-200 bg-white py-12 px-4">
           <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-400 font-medium">
             <div className="flex items-center space-x-2">
@@ -322,9 +305,9 @@ export default function Home() {
               <span className="font-bold text-slate-700">© 2026 TaskEngine</span>
             </div>
             <div className="flex space-x-6">
-              <a href="#" className="hover:text-slate-900 transition">Terms of Service</a>
-              <a href="#" className="hover:text-slate-900 transition">Privacy Policy</a>
-              <a href="#" className="hover:text-slate-900 transition">Contact Operators</a>
+              <Link href="/terms" className="hover:text-slate-900 transition">Terms of Service</Link>
+              <Link href="/privacy" className="hover:text-slate-900 transition">Privacy Policy</Link>
+              <a href="mailto:support@taskengine.software" className="hover:text-slate-900 transition">Contact Operators</a>
             </div>
           </div>
         </footer>
