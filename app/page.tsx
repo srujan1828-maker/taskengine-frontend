@@ -1,16 +1,40 @@
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Script from 'next/script';
-import Link from 'next/link';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Script from "next/script";
+import Link from "next/link";
 
-// ⚠️ NOTE: This file is a Client Component ("use client"), so it CANNOT export
-// Next.js `metadata`. Add the page <title>, description, and JSON-LD structured
-// data via `app/layout.tsx` instead — see layout-metadata-snippet.tsx provided
-// alongside this file.
+type AgentKey = "lead" | "content" | "competitor" | "workflow";
 
-type AgentKey = 'lead' | 'content' | 'competitor' | 'workflow';
+type RazorpayCheckoutOptions = {
+  key?: string;
+  amount: number;
+  currency: string;
+  order_id: string;
+  name: string;
+  description: string;
+  image: string;
+  handler: () => void;
+  prefill: { email: string };
+  notes: Record<string, string>;
+  theme: { color: string };
+  modal?: { ondismiss: () => void };
+};
+
+type CheckoutResponse = {
+  orderId: string;
+  amount: number;
+  currency: string;
+  internalOrderId: string;
+  keyId: string;
+};
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: RazorpayCheckoutOptions) => { open: () => void };
+  }
+}
 
 interface AgentDetails {
   id: AgentKey;
@@ -19,677 +43,715 @@ interface AgentDetails {
   icon: string;
   desc: string;
   placeholder: string;
+  deliverable: string;
+  proof: string;
   capabilities: string[];
-  estimatedYield?: string;
-  dataPoints?: string[];
-  deliverability?: string;
-  promptGuide?: string;
-  previewLabel: string;
-  previewTitle: string;
-  previewFormat: string;
+  dataPoints: string[];
 }
 
 const AGENTS: AgentDetails[] = [
   {
-    id: 'lead',
-    name: 'The Lead Agent',
-    role: 'B2B Lead Generation',
-    icon: '🎯',
-    desc: 'AI-researched B2B prospect lists, formatted and ready to drop into your outreach sequence.',
-    placeholder: 'e.g., Boutique coffee shops in Bangalore with public contact details...',
-    capabilities: ['Researches businesses matching your target description', 'Builds standardized corporate inbox addresses where direct emails aren\'t public', 'Cleans and structures results into a ready-to-use CSV'],
-    estimatedYield: "Typical yield: 100-150 prospects per run",
-    deliverability: "Free re-run if your list doesn't meet the brief",
-    dataPoints: ["Company Name", "Target Job Title (if specified)", "Best-Match Contact Email", "Area / Location", "Company Website"],
-    promptGuide: "Pro Tip: Specify exact titles (e.g., 'Founders'), company size, location, and exclusions for best results.",
-    previewLabel: "View Sample CSV Output",
-    previewTitle: "te_leads_export.csv",
-    previewFormat: "CSV Data Grid"
+    id: "lead",
+    name: "Lead Agent",
+    role: "B2B prospect research",
+    icon: "🎯",
+    desc: "Builds targeted prospect lists from a plain-language brief, then returns a cleaned CSV your sales team can use immediately.",
+    placeholder:
+      "Example: 20 boutique coffee shops in Bangalore with public websites and contact pages.",
+    deliverable: "Up to 20 researched rows in CSV",
+    proof:
+      "QA reviewed for duplicates, location fit, and usable company details.",
+    capabilities: [
+      "Target-account research",
+      "Public contact discovery",
+      "CSV formatting",
+      "Duplicate cleanup",
+    ],
+    dataPoints: ["Company", "Location", "Best contact", "Website", "Notes"],
   },
   {
-    id: 'content',
-    name: 'The Content Agent',
-    role: 'Conversion Copywriter',
-    icon: '✍️',
-    desc: 'Search-optimized long-form blogs paired with platform-specific social captions.',
-    placeholder: 'e.g., Write a promo for an organic vitamin-E skincare lotion.',
-    capabilities: ['Writes a long-form, SEO-structured blog post', 'Generates ready-to-post social captions', 'Delivers in clean, production-ready Markdown'],
-    estimatedYield: "1 Long-Form Blog (1,000+ words) & 2 Social Assets",
-    deliverability: "Free revision if the tone or angle misses your brief",
-    dataPoints: ["SEO-Structured Markdown File", "Suggested Meta Title & Description", "LinkedIn Post Draft", "Twitter/X Thread"],
-    promptGuide: "Pro Tip: Provide your primary keyword, brand voice (e.g., 'professional but witty'), and target audience.",
-    previewLabel: "View Sample Blog Draft",
-    previewTitle: "skincare_seo_blog_final.md",
-    previewFormat: "Markdown Syntax"
+    id: "content",
+    name: "Content Agent",
+    role: "SEO content production",
+    icon: "✍️",
+    desc: "Turns a keyword and offer into a publish-ready article plus social distribution assets for your marketing calendar.",
+    placeholder:
+      "Example: Write a landing-page style blog for an organic vitamin E skincare lotion.",
+    deliverable: "1 long-form article + 2 social assets",
+    proof:
+      "Includes meta title, description, heading hierarchy, and campaign-ready captions.",
+    capabilities: [
+      "SEO outline",
+      "Long-form copy",
+      "Meta tags",
+      "LinkedIn and X drafts",
+    ],
+    dataPoints: ["Markdown", "Meta copy", "CTA", "Social posts", "Keywords"],
   },
   {
-    id: 'competitor',
-    name: 'The Competitor Agent',
-    role: 'SEO Strategist',
-    icon: '🕵️',
-    desc: 'A keyword-gap strategy report comparing your business against a market rival.',
-    placeholder: 'e.g., Compare my boutique fitness studio in Bangalore to local competitors...',
-    capabilities: ['Identifies likely keyword gaps based on your business type and competitor', 'Suggests high-intent search terms you may be missing', 'Outputs a prioritized action plan'],
-    estimatedYield: "Strategy Report & Prioritized Keyword Targets",
-    deliverability: "Free re-run if the report doesn't match your business",
-    dataPoints: ["Suggested Keyword Targets", "Relative Difficulty Notes", "Competitor Positioning Summary", "Actionable Next Steps"],
-    promptGuide: "Pro Tip: Include your business type, location, and your top 1-2 competitors by name.",
-    previewLabel: "View Sample SEO Report",
-    previewTitle: "competitor_gap_analysis.csv",
-    previewFormat: "SEO Audit Dashboard"
+    id: "competitor",
+    name: "Competitor Agent",
+    role: "Market gap analysis",
+    icon: "🕵️",
+    desc: "Compares your positioning against a named competitor and returns practical opportunities to win search demand.",
+    placeholder:
+      "Example: Compare my boutique fitness studio to two local Pilates competitors in Bangalore.",
+    deliverable: "Keyword-gap report + action plan",
+    proof:
+      "Prioritized by intent, difficulty, local relevance, and fastest execution path.",
+    capabilities: [
+      "Keyword ideation",
+      "Positioning review",
+      "Priority scoring",
+      "Next-step roadmap",
+    ],
+    dataPoints: ["Gaps", "Difficulty", "Intent", "Actions", "Messaging"],
   },
   {
-    id: 'workflow',
-    name: 'The Workflow Agent',
-    role: 'No-Code Architect',
-    icon: '⚙️',
-    desc: 'Text-based logic workflows mapping out how to connect disparate office systems.',
-    placeholder: 'e.g., When an invoice hits Gmail, save to Drive and alert Slack.',
-    capabilities: ['Maps out exact node-by-node automation logic', 'Specifies data fields to map between apps', 'Outputs a ready-to-build n8n/Zapier blueprint'],
-    estimatedYield: "Step-by-step logic map & payload JSON",
-    deliverability: "Free revision if a step doesn't match your tools",
-    dataPoints: ["Trigger Configuration", "Action Steps & Order", "Data Mapping Notes", "Error Handling Suggestions"],
-    promptGuide: "Pro Tip: Clearly state the trigger app, the exact data you want moved, and the final destination app.",
-    previewLabel: "View Sample Logic Schema",
-    previewTitle: "invoice_automation_schema.json",
-    previewFormat: "Node Architecture & JSON"
+    id: "workflow",
+    name: "Workflow Agent",
+    role: "Automation blueprinting",
+    icon: "⚙️",
+    desc: "Maps the exact no-code automation steps needed to connect tools like Gmail, Sheets, Slack, Notion, and CRMs.",
+    placeholder:
+      "Example: When an invoice PDF hits Gmail, save it to Drive, log it in Sheets, and alert Slack.",
+    deliverable: "Node-by-node automation blueprint",
+    proof:
+      "Includes trigger logic, field mapping, error paths, and implementation notes.",
+    capabilities: [
+      "Trigger design",
+      "Data mapping",
+      "Error handling",
+      "n8n/Zapier logic",
+    ],
+    dataPoints: ["Trigger", "Actions", "Fields", "Fallbacks", "JSON"],
   },
 ];
 
-const FAQS: { q: string; a: string }[] = [
-  {
-    q: "How long does it take to get my results?",
-    a: "Most tasks are delivered to your inbox within 30-60 minutes of a successful payment. You'll get an email with your results attached as a CSV or Markdown file."
-  },
-  {
-    q: "What if the output doesn't match what I asked for?",
-    a: "Email support@taskengine.software within 48 hours with your Execution ID and a note on what's off. We'll re-run the task at no extra cost or refund you if we can't fix it."
-  },
-  {
-    q: "Are the leads from the Lead Agent guaranteed to be 100% accurate?",
-    a: "The Lead Agent researches businesses matching your description and builds a best-match contact list. Where a direct email isn't publicly listed, we generate a standard corporate inbox format (e.g. info@company.com). We don't claim every address is inbox-verified — if your list quality is below what you expected, we'll re-run it free."
-  },
-  {
-    q: "Do I need to give TaskEngine access to my accounts or data?",
-    a: "No. You just provide written instructions and an email address. We don't request API keys, database access, or login credentials for any task."
-  },
-  {
-    q: "Is this a subscription?",
-    a: "No. Every task is a single flat-fee payment of ₹1,500. There's nothing to cancel and no recurring charges."
-  },
-  {
-    q: "Can I request something that isn't one of the four listed agents?",
-    a: "Yes — email us your use case at support@taskengine.software and we'll let you know if we can run it as a custom one-off task."
-  },
+const FAQS = [
+  [
+    "How fast is delivery?",
+    "Most executions are accepted instantly after payment, queued safely, and delivered when the worker finishes the run.",
+  ],
+  [
+    "What happens if the output misses the brief?",
+    "Email support@taskengine.software within 48 hours. We will re-run the task or refund it if we cannot fix it.",
+  ],
+  [
+    "Do you need access to my accounts?",
+    "No. TaskEngine only needs written instructions and your delivery email. Never share passwords or API keys.",
+  ],
+  [
+    "Is this a subscription?",
+    "No. Every execution is a flat ₹1,500 task with no recurring billing, and every paid order receives a trackable job ID.",
+  ],
+];
+
+const METRICS = [
+  ["Instant", "payment acceptance"],
+  ["₹1,500", "flat per task"],
+  ["Queued", "retry-safe jobs"],
+  ["48 hr", "re-run window"],
+];
+
+const PIPELINE_STEPS = [
+  ["Signed payment", "Razorpay webhook is verified before any work starts."],
+  ["Idempotent job", "DynamoDB conditional writes stop duplicate retries."],
+  [
+    "Queued worker",
+    "AWS async invocation/SQS-style handoff keeps checkout fast.",
+  ],
+  ["Inbox delivery", "SES sends the result after AI + QA succeeds."],
 ];
 
 export default function Home() {
   const router = useRouter();
   const [activeAgent, setActiveAgent] = useState<AgentDetails>(AGENTS[0]);
-  const [showPreview, setShowPreview] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-
-  const [inputs, setInputs] = useState({
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [inputs, setInputs] = useState<
+    Record<AgentKey, { prompt: string; email: string }>
+  >({
     lead: { prompt: "", email: "" },
     content: { prompt: "", email: "" },
     competitor: { prompt: "", email: "" },
-    workflow: { prompt: "", email: "" }
+    workflow: { prompt: "", email: "" },
   });
 
-  const handleInputChange = (agent: AgentKey, field: 'prompt' | 'email', value: string) => {
-    setInputs(prev => ({
+  const handleInputChange = (
+    agent: AgentKey,
+    field: "prompt" | "email",
+    value: string,
+  ) => {
+    setInputs((prev) => ({
       ...prev,
-      [agent]: { ...prev[agent], [field]: value }
+      [agent]: { ...prev[agent], [field]: value },
     }));
-  };
-
-  const handleTabSwitch = (agent: AgentDetails) => {
-    setActiveAgent(agent);
-    setShowPreview(false);
   };
 
   const handleCheckout = async (agentKey: AgentKey, agentName: string) => {
     const { prompt, email } = inputs[agentKey];
-
-    if (!prompt || !email) {
-      alert("Please fill out both the instructions and your delivery email!");
+    if (!prompt.trim() || !email.trim()) {
+      alert("Please add your instructions and delivery email before checkout.");
       return;
     }
 
-    // ⚠️ RECOMMENDED: Before opening Razorpay checkout, call your backend to create
-    // a Razorpay Order (POST /api/create-order) and pass the returned order_id below.
-    // This lets you verify payment signatures server-side and avoids relying on
-    // a purely client-side redirect to /success.
-    //
-    // const orderRes = await fetch('/api/create-order', {
-    //   method: 'POST',
-    //   body: JSON.stringify({ amount: 150000, prompt, email, agent: agentName }),
-    // });
-    // const { order_id } = await orderRes.json();
+    if (!window.Razorpay) {
+      alert("Checkout is still loading. Please try again in a few seconds.");
+      return;
+    }
 
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: 150000,
-      currency: "INR",
-      payment_capture: 1,
-      name: "TaskEngine",
-      description: `Hire ${agentName}`,
-      image: "https://taskengine.software/logo.png",
-      // order_id, // <- add once create-order endpoint exists
-      handler: function () {
-        router.push('/success');
-      },
-      prefill: { email: email },
-      notes: { customer_email: email, prompt: prompt, agent_type: agentName },
-      theme: { color: "#000000" },
-    };
+    setIsProcessing(true);
 
-    const rzp = new (window as any).Razorpay(options);
-    rzp.open();
+    try {
+      // Ensure your backend API route is located exactly at `app/api/checkout/route.ts`
+      const checkoutResponse = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          taskType: agentKey,
+          userEmail: email,
+          userInputs: prompt,
+        }),
+      });
+
+      const checkout =
+        (await checkoutResponse.json()) as Partial<CheckoutResponse> & {
+          error?: string;
+        };
+
+      if (
+        !checkoutResponse.ok ||
+        !checkout.orderId ||
+        !checkout.amount ||
+        !checkout.currency ||
+        !checkout.keyId
+      ) {
+        alert(
+          checkout.error ??
+            "Unable to initialize checkout. Please contact support@taskengine.software.",
+        );
+        setIsProcessing(false);
+        return;
+      }
+
+      const options: RazorpayCheckoutOptions = {
+        key: checkout.keyId,
+        amount: checkout.amount,
+        currency: checkout.currency,
+        order_id: checkout.orderId,
+        name: "TaskEngine",
+        description: `Hire ${agentName}`,
+        image: "https://taskengine.software/logo.png",
+        handler: () => {
+          router.push(`/success?order=${checkout.internalOrderId ?? checkout.orderId}`);
+        },
+        modal: {
+          ondismiss: () => {
+            // Unlock the UI if the user closes the Razorpay window without paying
+            setIsProcessing(false);
+          }
+        },
+        prefill: { email },
+        notes: {
+          internal_order_id: checkout.internalOrderId ?? checkout.orderId,
+          customer_email: email,
+          prompt,
+          agent_type: agentName,
+        },
+        theme: { color: "#111827" },
+      };
+
+      new window.Razorpay(options).open();
+    } catch (error) {
+      console.error("Checkout initialization failed:", error);
+      alert(
+        "Unable to initialize checkout. Please try again or contact support@taskengine.software.",
+      );
+      setIsProcessing(false);
+    }
   };
 
   return (
     <>
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-
-      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-black selection:text-white relative">
-
-        {/* NAVBAR */}
-        <nav className="sticky top-0 z-40 backdrop-blur-md bg-white/80 border-b border-slate-200/50">
-          <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center space-x-2 cursor-pointer">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-black text-sm tracking-tighter">TE</div>
-              <span className="font-extrabold text-xl tracking-tight text-slate-900">TaskEngine</span>
-            </div>
-            <div className="hidden sm:flex items-center space-x-6 text-sm font-medium text-slate-600">
-              <a href="#workspace" className="hover:text-black transition">Agents</a>
-              <a href="#pricing" className="hover:text-black transition">Pricing Model</a>
-              <a href="#integrations" className="hover:text-black transition">Zero-Setup</a>
-              <a href="#faq" className="hover:text-black transition">FAQ</a>
-            </div>
-            <div>
-              <a href="#workspace" className="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-slate-800 transition">
-                Launch Console
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
+      />
+      <main className="min-h-screen overflow-hidden bg-[#f7f8fb] text-slate-950 selection:bg-indigo-600 selection:text-white">
+        <nav className="sticky top-0 z-40 border-b border-white/70 bg-white/85 backdrop-blur-xl">
+          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+            <Link
+              href="/"
+              className="flex items-center gap-3"
+              aria-label="TaskEngine home"
+            >
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-950 text-sm font-black text-white shadow-lg shadow-slate-950/15">
+                TE
+              </span>
+              <span className="text-lg font-black tracking-tight">
+                TaskEngine
+              </span>
+            </Link>
+            <div className="hidden items-center gap-7 text-sm font-semibold text-slate-600 md:flex">
+              <a href="#agents" className="hover:text-slate-950">
+                Agents
+              </a>
+              <a href="#architecture" className="hover:text-slate-950">
+                Architecture
+              </a>
+              <a href="#process" className="hover:text-slate-950">
+                Process
+              </a>
+              <a href="#pricing" className="hover:text-slate-950">
+                Pricing
+              </a>
+              <a href="#faq" className="hover:text-slate-950">
+                FAQ
               </a>
             </div>
+            <a
+              href="#console"
+              className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-indigo-600"
+            >
+              Start a task
+            </a>
           </div>
         </nav>
 
-        {/* HERO SECTION */}
-        <header className="max-w-5xl mx-auto pt-24 pb-8 text-center px-4 relative z-0">
-          <span className="text-xs font-bold tracking-widest text-slate-500 uppercase bg-slate-200/50 px-3 py-1 rounded-full border border-slate-200">
-            No subscriptions. No retainers. Just execution.
-          </span>
-          <h1 className="mt-6 text-4xl font-extrabold tracking-tight sm:text-6xl bg-gradient-to-r from-black via-slate-800 to-slate-900 bg-clip-text text-transparent leading-none">
-            Outsource Operations to Digital Specialists
-          </h1>
-          <p className="mt-6 text-lg md:text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
-            Stop paying thousands for unused SaaS seats. Select a pre-trained agent, define your exact target, and get a structured report dropped straight into your inbox.
-          </p>
-          <p className="mt-4 text-sm text-slate-400 font-medium">
-            ⏱ Delivered within 30-60 minutes &nbsp;·&nbsp; 🔁 Free re-run if it misses the brief
-          </p>
-        </header>
-
-        {/* INTERACTIVE WORKSPACE */}
-        <section id="workspace" className="max-w-5xl mx-auto px-4 pb-20 pt-8 space-y-6 scroll-mt-20 relative z-0">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {AGENTS.map((agent) => {
-              const isActive = activeAgent.id === agent.id;
-              return (
-                <button
-                  key={agent.id}
-                  onClick={() => handleTabSwitch(agent)}
-                  className={`p-4 text-left rounded-xl border-2 transition-all duration-200 ${
-                    isActive
-                      ? 'border-black bg-white shadow-sm scale-[1.02]'
-                      : 'border-slate-200 bg-slate-100/50 hover:bg-white hover:border-slate-300'
-                  }`}
-                >
-                  <div className="text-2xl mb-1">{agent.icon}</div>
-                  <div className="font-bold text-sm text-slate-900 truncate">{agent.name}</div>
-                  <div className="text-[11px] font-semibold text-slate-400 truncate">{agent.role}</div>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col md:flex-row gap-8 relative">
-
-            {/* Left Column: Context & Parameters */}
-            <div className="md:w-1/2 space-y-6">
-              <div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-3xl">{activeAgent.icon}</span>
-                  <div>
-                    <h2 className="text-xl font-bold tracking-tight">{activeAgent.name}</h2>
-                    <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">{activeAgent.role}</p>
-                  </div>
-                </div>
-                <p className="text-sm text-slate-500 mt-3 leading-relaxed">
-                  {activeAgent.desc}
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {activeAgent.deliverability && (
-                  <div className="inline-flex items-center space-x-2 bg-green-50 border border-green-200 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    <span>{activeAgent.deliverability}</span>
-                  </div>
-                )}
-
-                <div className="bg-slate-50 border border-slate-100 rounded-xl p-5 space-y-4">
-                  <div>
-                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">The Deliverable</span>
-                    {activeAgent.estimatedYield && (
-                      <p className="text-sm text-slate-600 font-medium mt-1">{activeAgent.estimatedYield}</p>
-                    )}
-                  </div>
-
-                  {activeAgent.dataPoints && (
-                    <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">What You'll Receive:</span>
-                      <div className="mt-2 grid grid-cols-2 gap-2">
-                        {activeAgent.dataPoints.map((point, idx) => (
-                          <div key={idx} className="flex items-center space-x-1.5 text-xs text-slate-600 font-medium bg-white border border-slate-200 py-1 px-2 rounded-md">
-                            <span className="text-blue-500">❖</span>
-                            <span className="truncate">{point}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Input & Checkout */}
-            <div className="md:w-1/2 space-y-4 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8">
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-end">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Operational Instructions</label>
-                  {activeAgent.promptGuide && (
-                    <span className="text-[10px] font-medium text-slate-400 max-w-[200px] text-right leading-tight">
-                      {activeAgent.promptGuide}
-                    </span>
-                  )}
-                </div>
-                <textarea
-                  rows={4}
-                  placeholder={activeAgent.placeholder}
-                  className="w-full text-sm p-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none bg-slate-50/50 placeholder:text-slate-300 font-normal transition"
-                  value={inputs[activeAgent.id].prompt}
-                  onChange={(e) => handleInputChange(activeAgent.id, 'prompt', e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Target Destination Inbox</label>
-                <input
-                  type="email"
-                  placeholder="operator@company.com"
-                  className="w-full text-sm p-4 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent bg-slate-50/50 placeholder:text-slate-300 font-normal transition"
-                  value={inputs[activeAgent.id].email}
-                  onChange={(e) => handleInputChange(activeAgent.id, 'email', e.target.value)}
-                />
-              </div>
-
-              <div className="pt-2 flex flex-col space-y-3">
-                <button
-                  onClick={() => handleCheckout(activeAgent.id, activeAgent.name)}
-                  className="w-full bg-black text-white py-4 px-6 rounded-xl text-base font-bold hover:bg-slate-900 active:scale-[0.99] transition-all shadow-md flex items-center justify-center space-x-2"
-                >
-                  <span>Initialize Execution</span>
-                  <span className="text-slate-400">|</span>
-                  <span className="text-slate-200">₹1,500</span>
-                </button>
-                <p className="text-xs text-slate-400 text-center">
-                  ⏱ Delivered to your inbox within 30-60 minutes
-                </p>
-
-                <div className="flex items-center justify-between px-1">
-                  <button
-                    onClick={() => setShowPreview(true)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition underline underline-offset-2 flex items-center gap-1"
-                  >
-                    {activeAgent.previewLabel}
-                  </button>
-                  <span className="text-xs font-medium text-slate-500 ml-auto">🔒 Secure Escrow via Razorpay</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ✨ DYNAMIC VISUAL PROOF MODAL */}
-        {showPreview && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowPreview(false)}></div>
-            <div className="relative bg-white w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col border border-slate-200 overflow-hidden animate-fade-in max-h-[90vh]">
-
-              {/* Modal Header */}
-              <div className="flex justify-between items-center bg-slate-50 px-6 py-4 border-b border-slate-200 shrink-0">
-                <div>
-                  <h3 className="font-bold text-lg text-slate-900">Sample Output Payload</h3>
-                  <p className="text-xs text-slate-500 font-mono mt-0.5">{activeAgent.previewTitle} • {activeAgent.previewFormat}</p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider hidden sm:block">Preview Only</span>
-                  <button onClick={() => setShowPreview(false)} className="bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-slate-100 transition">
-                    Close Preview
-                  </button>
-                </div>
-              </div>
-
-              {/* Modal Body / Scrollable Area */}
-              <div className="p-6 overflow-y-auto bg-slate-100/50">
-
-                {/* 1. LEAD AGENT */}
-                {activeAgent.id === 'lead' && (
-                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                    <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
-                      <div className="flex space-x-3 text-xs font-semibold text-slate-600">
-                        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">120 Rows Generated</span>
-                        <span className="flex items-center text-slate-500"><span className="mr-1">✓</span> QA Reviewed</span>
-                      </div>
-                      <div className="text-xs text-slate-400 font-mono">te_leads_export.csv</div>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-sm whitespace-nowrap">
-                        <thead className="bg-white text-slate-400 font-bold text-xs uppercase border-b border-slate-100">
-                          <tr>
-                            <th className="px-4 py-3 w-8 text-center border-r border-slate-50">#</th>
-                            <th className="px-4 py-3">Company Name</th>
-                            <th className="px-4 py-3">Area</th>
-                            <th className="px-4 py-3">Job Title</th>
-                            <th className="px-4 py-3 bg-blue-50/30">Contact Email</th>
-                            <th className="px-4 py-3">Website</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 text-slate-700">
-                          <tr className="hover:bg-slate-50">
-                            <td className="px-4 py-3 text-slate-300 text-center border-r border-slate-50 text-xs">1</td>
-                            <td className="px-4 py-3 font-medium">Acme Robotics Pvt Ltd</td><td className="px-4 py-3">Thindlu, Bangalore</td><td className="px-4 py-3">Founder</td>
-                            <td className="px-4 py-3 text-blue-600 font-mono text-xs bg-blue-50/30">info@acmerobotics.in</td><td className="px-4 py-3 text-blue-500 hover:underline text-xs">acmerobotics.in</td>
-                          </tr>
-                          <tr className="hover:bg-slate-50">
-                            <td className="px-4 py-3 text-slate-300 text-center border-r border-slate-50 text-xs">2</td>
-                            <td className="px-4 py-3 font-medium">GrowthCo Marketing</td><td className="px-4 py-3">Thindlu, Bangalore</td><td className="px-4 py-3">Head of Growth</td>
-                            <td className="px-4 py-3 text-blue-600 font-mono text-xs bg-blue-50/30">hello@growthco.in</td><td className="px-4 py-3 text-blue-500 hover:underline text-xs">growthco.in</td>
-                          </tr>
-                          <tr className="hover:bg-slate-50">
-                            <td className="px-4 py-3 text-slate-300 text-center border-r border-slate-50 text-xs">3</td>
-                            <td className="px-4 py-3 font-medium">Rostova Studio</td><td className="px-4 py-3">Thindlu, Bangalore</td><td className="px-4 py-3">Owner</td>
-                            <td className="px-4 py-3 text-blue-600 font-mono text-xs bg-blue-50/30">contact@rostovastudio.com</td><td className="px-4 py-3 text-blue-500 hover:underline text-xs">rostovastudio.com</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-400">
-                      Sample data shown for illustration. Where a direct email isn't publicly listed, a standard corporate inbox format is used.
-                    </div>
-                  </div>
-                )}
-
-                {/* 2. CONTENT AGENT */}
-                {activeAgent.id === 'content' && (
-                  <div className="bg-[#1E1E1E] border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
-                    <div className="bg-[#2D2D2D] px-4 py-2 border-b border-[#404040] flex items-center space-x-2">
-                      <div className="flex space-x-1.5 mr-4">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div><div className="w-3 h-3 rounded-full bg-yellow-500"></div><div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      </div>
-                      <div className="bg-[#1E1E1E] text-slate-300 text-xs font-mono px-3 py-1 rounded-t-md border-t border-l border-r border-[#404040] -mb-2 z-10">skincare_seo_blog_final.md</div>
-                    </div>
-                    <div className="p-6 text-[#D4D4D4] font-mono text-sm leading-relaxed overflow-x-auto">
-                      <p><span className="text-blue-400 font-bold">#</span> <span className="text-blue-300 font-bold">The Future of Organic Skincare: Why Vitamin E is Essential</span></p>
-                      <br/>
-                      <p>In a world dominated by synthetic chemicals, the return to organic, plant-based skincare isn't just a trend—it's a necessity. At the forefront of this shift is <span className="text-orange-300">**Vitamin E**</span>.</p>
-                      <br/>
-                      <p><span className="text-blue-400 font-bold">##</span> <span className="text-blue-300 font-bold">Top 3 Benefits of Natural Vitamin E</span></p>
-                      <br/>
-                      <p><span className="text-purple-400">-</span> <span className="text-orange-300">**Cellular Repair:**</span> Supports healing of micro-abrasions.</p>
-                      <p><span className="text-purple-400">-</span> <span className="text-orange-300">**Antioxidant Barrier:**</span> Helps defend against pollution and UV exposure.</p>
-                      <p><span className="text-purple-400">-</span> <span className="text-orange-300">**Deep Hydration:**</span> Locks in moisture without clogging pores.</p>
-                      <br/>
-                      <p><span className="text-slate-500 italic">&lt;!-- Suggested Keyword: Organic Vitamin E Serum --&gt;</span></p>
-                      <p><span className="text-slate-500 italic">&lt;!-- Suggested Meta Description: Discover why organic Vitamin E is... --&gt;</span></p>
-                    </div>
-                  </div>
-                )}
-
-                {/* 3. COMPETITOR AGENT */}
-                {activeAgent.id === 'competitor' && (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
-                        <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Keyword Gaps Identified</div>
-                        <div className="text-3xl font-black text-slate-900">40+</div>
-                        <div className="text-xs text-slate-500 font-medium mt-2">Across core categories</div>
-                      </div>
-                      <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
-                        <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Action Steps</div>
-                        <div className="text-3xl font-black text-slate-900">8-12</div>
-                        <div className="text-xs text-slate-500 font-medium mt-2">Prioritized by impact</div>
-                      </div>
-                      <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm border-t-4 border-t-blue-500">
-                        <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">Top Opportunity</div>
-                        <div className="text-lg font-bold text-slate-900 truncate">"Pilates near me"</div>
-                        <div className="text-xs text-blue-600 font-medium mt-2">High intent, low competition</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                      <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
-                        <h4 className="text-sm font-bold text-slate-900">Strategic Keyword Gaps</h4>
-                      </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm whitespace-nowrap">
-                          <thead className="bg-slate-50 text-slate-500 font-bold text-xs uppercase border-b border-slate-200">
-                            <tr>
-                              <th className="px-4 py-3">Suggested Keyword Target</th>
-                              <th className="px-4 py-3">Relative Difficulty</th>
-                              <th className="px-4 py-3">Competitor Coverage</th>
-                              <th className="px-4 py-3">Your Coverage</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100 text-slate-700">
-                            <tr className="hover:bg-slate-50">
-                              <td className="px-4 py-3 font-semibold">"Boutique Pilates near me"</td>
-                              <td className="px-4 py-3"><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Low</span></td>
-                              <td className="px-4 py-3">Ranking <span className="text-xs text-slate-400">(urbanfit.com)</span></td><td className="px-4 py-3 text-red-500 font-medium">Not covered</td>
-                            </tr>
-                            <tr className="hover:bg-slate-50">
-                              <td className="px-4 py-3 font-semibold">"Reformer classes Bangalore"</td>
-                              <td className="px-4 py-3"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">Medium</span></td>
-                              <td className="px-4 py-3">Ranking <span className="text-xs text-slate-400">(urbanfit.com)</span></td><td className="px-4 py-3">Partial</td>
-                            </tr>
-                            <tr className="hover:bg-slate-50">
-                              <td className="px-4 py-3 font-semibold">"Pilates vs Yoga weight loss"</td>
-                              <td className="px-4 py-3"><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Low</span></td>
-                              <td className="px-4 py-3">Ranking <span className="text-xs text-slate-400">(urbanfit.com)</span></td><td className="px-4 py-3 text-red-500 font-medium">Not covered</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 4. WORKFLOW AGENT */}
-                {activeAgent.id === 'workflow' && (
-                  <div className="space-y-4">
-                    <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 overflow-x-auto shadow-sm">
-                      <div className="flex flex-col items-center">
-                        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm">1. Gmail Trigger</div>
-                        <span className="text-[10px] text-slate-400 mt-1">Watch: "subject:invoice"</span>
-                      </div>
-                      <div className="text-slate-300 font-bold hidden md:block">→</div>
-                      <div className="text-slate-300 font-bold md:hidden">↓</div>
-                      <div className="flex flex-col items-center">
-                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm">2. Google Drive</div>
-                        <span className="text-[10px] text-slate-400 mt-1">Action: Upload File</span>
-                      </div>
-                      <div className="text-slate-300 font-bold hidden md:block">→</div>
-                      <div className="text-slate-300 font-bold md:hidden">↓</div>
-                      <div className="flex flex-col items-center">
-                        <div className="bg-purple-50 border border-purple-200 text-purple-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm">3. Slack Alert</div>
-                        <span className="text-[10px] text-slate-400 mt-1">Action: Send Message</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#0D1117] border border-slate-800 rounded-xl overflow-hidden shadow-xl">
-                      <div className="bg-[#161B22] px-4 py-2 border-b border-slate-800 text-xs font-mono text-slate-400">payload_schema.json</div>
-                      <div className="p-4 overflow-x-auto">
-                        <pre className="text-xs text-slate-300 font-mono leading-relaxed">
-<span className="text-blue-400">{"{"}</span>
-  <span className="text-blue-300">"name"</span>: <span className="text-green-300">"Invoice Parsing Workflow"</span>,
-  <span className="text-blue-300">"nodes"</span>: <span className="text-yellow-300">[</span>
-    <span className="text-purple-400">{"{"}</span>
-      <span className="text-blue-300">"id"</span>: <span className="text-green-300">"gmail_trigger_01"</span>,
-      <span className="text-blue-300">"type"</span>: <span className="text-green-300">"n8n-nodes-base.gmailTrigger"</span>,
-      <span className="text-blue-300">"parameters"</span>: <span className="text-orange-300">{"{"}</span>
-        <span className="text-blue-300">"q"</span>: <span className="text-green-300">"has:attachment filename:pdf subject:invoice"</span>
-      <span className="text-orange-300">{"}"}</span>
-    <span className="text-purple-400">{"}"}</span>,
-    <span className="text-slate-500">// ... Google Drive and Slack nodes follow</span>
-  <span className="text-yellow-300">]</span>
-<span className="text-blue-400">{"}"}</span>
-                        </pre>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* PRICING COMPARISON */}
-        <section id="pricing" className="bg-black text-white py-20 px-4 relative z-0">
-          <div className="max-w-5xl mx-auto space-y-12">
-            <div className="text-center max-w-2xl mx-auto space-y-4">
-              <h2 className="text-3xl font-extrabold tracking-tight">The Anti-SaaS Business Model</h2>
-              <p className="text-slate-400 font-medium text-lg">Stop paying software retainers for agents you only use twice a month.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl opacity-75">
-                <h3 className="text-red-400 font-bold text-sm tracking-wider uppercase mb-4">The Industry Standard</h3>
-                <ul className="space-y-4 text-slate-300 text-sm">
-                  <li className="flex items-center space-x-3"><span className="text-slate-600">✕</span><span>$500 to $2,000 monthly retainers</span></li>
-                  <li className="flex items-center space-x-3"><span className="text-slate-600">✕</span><span>Unused credits expire at month end</span></li>
-                  <li className="flex items-center space-x-3"><span className="text-slate-600">✕</span><span>Requires credit card on file to test</span></li>
-                </ul>
-              </div>
-              <div className="bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700 p-8 rounded-2xl shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-green-500 text-black text-[10px] font-bold px-3 py-1 rounded-bl-lg tracking-wider uppercase">Our Model</div>
-                <h3 className="text-white font-bold text-sm tracking-wider uppercase mb-4">The TaskEngine Approach</h3>
-                <ul className="space-y-4 text-white text-sm font-medium">
-                  <li className="flex items-center space-x-3"><span className="text-green-400">✓</span><span>Flat ₹1,500 transactional fee per run</span></li>
-                  <li className="flex items-center space-x-3"><span className="text-green-400">✓</span><span>No subscriptions or hidden recurring charges</span></li>
-                  <li className="flex items-center space-x-3"><span className="text-green-400">✓</span><span>Pay exactly and only for the operations you need</span></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* INTEGRATIONS */}
-        <section id="integrations" className="bg-white py-20 px-4 relative z-0">
-          <div className="max-w-5xl mx-auto space-y-12">
-            <div className="text-center max-w-2xl mx-auto space-y-4">
-              <span className="text-xs font-bold tracking-widest text-blue-600 uppercase bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
-                Zero-Integration Setup
-              </span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">No IT Approval. No API Keys.</h2>
-              <p className="text-slate-500 font-medium text-lg">Other platforms take weeks to connect securely to your business systems. We built TaskEngine to skip that entirely.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="space-y-3 p-4">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold border border-slate-200">1</div>
-                <h4 className="font-bold text-lg">Define Target Scope</h4>
-                <p className="text-sm text-slate-500 leading-relaxed">Provide raw text instructions in our console. You do not need to give us database read/write access.</p>
-              </div>
-              <div className="space-y-3 p-4">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold border border-slate-200">2</div>
-                <h4 className="font-bold text-lg">Secure Ephemeral Runs</h4>
-                <p className="text-sm text-slate-500 leading-relaxed">Your data is processed inside isolated cloud instances that are torn down once the task completes.</p>
-              </div>
-              <div className="space-y-3 p-4">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold border border-slate-200">3</div>
-                <h4 className="font-bold text-lg">Asynchronous Inbox Intake</h4>
-                <p className="text-sm text-slate-500 leading-relaxed">The final structured data (CSV/Markdown) is emailed straight to you. Just forward it to your team and get to work.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* FOUNDER / TRUST SECTION */}
-        <section className="bg-slate-50 py-20 px-4 border-t border-slate-200 relative z-0">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <span className="text-xs font-bold tracking-widest text-slate-500 uppercase bg-white px-3 py-1 rounded-full border border-slate-200">
-              Built by one engineer, not a faceless platform
-            </span>
-            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
-              Hi, I'm the person who built and runs TaskEngine
-            </h2>
-            <p className="text-slate-500 font-medium text-lg leading-relaxed">
-              TaskEngine started as a way to apply hands-on AI and automation work to real business tasks
-              at a fraction of typical agency pricing. Every task you run is reviewed by the same systems
-              I build and test myself — if something doesn't land, email me directly and I'll make it right.
+        <section className="relative mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:py-28">
+          <div className="absolute left-1/2 top-8 -z-0 h-72 w-72 rounded-full bg-indigo-200/50 blur-3xl" />
+          <div className="relative z-10 flex flex-col justify-center">
+            <p className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-indigo-100 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-indigo-700 shadow-sm">
+              production-ready AI task ops
             </p>
-            <a href="mailto:support@taskengine.software" className="inline-block text-sm font-bold text-black underline underline-offset-4 hover:text-slate-600 transition">
-              support@taskengine.software
-            </a>
-          </div>
-        </section>
-
-        {/* FAQ */}
-        <section id="faq" className="bg-white py-20 px-4 border-t border-slate-200 relative z-0 scroll-mt-20">
-          <div className="max-w-3xl mx-auto space-y-8">
-            <h2 className="text-3xl font-extrabold tracking-tight text-center text-slate-900">
-              Frequently Asked Questions
-            </h2>
-            <div className="space-y-3">
-              {FAQS.map((item, i) => {
-                const isOpen = openFaq === i;
-                return (
-                  <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden">
-                    <button
-                      onClick={() => setOpenFaq(isOpen ? null : i)}
-                      className="w-full text-left px-5 py-4 flex justify-between items-center gap-4"
-                    >
-                      <span className="font-bold text-sm text-slate-900">{item.q}</span>
-                      <span className={`text-slate-400 font-bold text-lg shrink-0 transition-transform ${isOpen ? 'rotate-45' : ''}`}>+</span>
-                    </button>
-                    {isOpen && (
-                      <p className="px-5 pb-4 text-sm text-slate-500 leading-relaxed">{item.a}</p>
-                    )}
+            <h1 className="max-w-4xl text-5xl font-black tracking-[-0.05em] text-slate-950 sm:text-6xl lg:text-7xl">
+              Sell AI agent tasks with a checkout flow customers can trust.
+            </h1>
+            <p className="mt-7 max-w-2xl text-lg font-medium leading-8 text-slate-600 sm:text-xl">
+              TaskEngine now presents the production flow behind every order:
+              Razorpay-signed payments, idempotent job creation, async AWS
+              workers, QA validation, and inbox delivery.
+            </p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <a
+                href="#console"
+                className="rounded-2xl bg-indigo-600 px-7 py-4 text-center text-sm font-black text-white shadow-xl shadow-indigo-600/20 transition hover:-translate-y-1 hover:bg-indigo-500"
+              >
+                Launch secure checkout
+              </a>
+              <a
+                href="#architecture"
+                className="rounded-2xl border border-slate-200 bg-white px-7 py-4 text-center text-sm font-black text-slate-900 shadow-sm transition hover:-translate-y-1 hover:border-slate-300"
+              >
+                Review architecture
+              </a>
+            </div>
+            <div className="mt-10 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
+              {METRICS.map(([value, label]) => (
+                <div
+                  key={label}
+                  className="rounded-2xl border border-white bg-white/80 p-4 shadow-sm"
+                >
+                  <div className="text-2xl font-black tracking-tight">
+                    {value}
                   </div>
-                );
-              })}
+                  <div className="mt-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                    {label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative z-10 rounded-[2rem] border border-white bg-slate-950 p-4 shadow-2xl shadow-slate-950/20">
+            <div className="rounded-[1.5rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,#4338ca,transparent_30%),#0f172a] p-5 text-white">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.22em] text-indigo-200">
+                    Live operations board
+                  </p>
+                  <h2 className="mt-1 text-2xl font-black">
+                    Execution pipeline
+                  </h2>
+                </div>
+                <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-black text-emerald-300">
+                  Online
+                </span>
+              </div>
+              <div className="mt-6 space-y-3">
+                {PIPELINE_STEPS.map(([step, detail], index) => (
+                  <div
+                    key={step}
+                    className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4"
+                  >
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-sm font-black text-slate-950">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1">
+                      <p className="font-bold">{step}</p>
+                      <p className="mt-1 text-sm leading-6 text-slate-400">
+                        {detail}
+                      </p>
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className="h-full rounded-full bg-indigo-300"
+                          style={{ width: `${95 - index * 14}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 rounded-2xl bg-black/30 p-4 font-mono text-xs leading-6 text-slate-300">
+                <p>
+                  <span className="text-emerald-300">✓</span> webhook:
+                  signature_verified
+                </p>
+                <p>
+                  <span className="text-emerald-300">✓</span> job:
+                  conditional_write_created
+                </p>
+                <p>
+                  <span className="text-indigo-300">→</span> worker:
+                  async_processing
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* FOOTER */}
-        <footer className="border-t border-slate-200 bg-white py-12 px-4 relative z-0">
-          <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-400 font-medium">
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-black rounded flex items-center justify-center text-white font-black text-xs">TE</div>
-              <span className="font-bold text-slate-700">© 2026 TaskEngine</span>
+        <section
+          id="architecture"
+          className="mx-auto max-w-7xl px-4 py-16 sm:px-6"
+        >
+          <div className="rounded-[2rem] border border-indigo-100 bg-white p-6 shadow-xl shadow-indigo-100/50 sm:p-8 lg:p-10">
+            <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+              <div>
+                <p className="text-sm font-black uppercase tracking-[0.22em] text-indigo-600">
+                  Production architecture
+                </p>
+                <h2 className="mt-3 text-4xl font-black tracking-tight">
+                  Payment first. Work queued. Results delivered.
+                </h2>
+                <p className="mt-5 text-lg leading-8 text-slate-600">
+                  The checkout no longer pretends a long AI job is finished
+                  immediately. It creates a Razorpay order, lets AWS verify the
+                  webhook, then hands the work to a background worker so retries
+                  are safe.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  [
+                    "1",
+                    "Create order",
+                    "Frontend calls /api/checkout and receives a Razorpay order ID.",
+                  ],
+                  [
+                    "2",
+                    "Verify webhook",
+                    "AWS receiver validates the raw Razorpay signature before invoking work.",
+                  ],
+                  [
+                    "3",
+                    "Run worker",
+                    "The worker checks idempotency, runs AI + QA, and avoids duplicate emails.",
+                  ],
+                  [
+                    "4",
+                    "Deliver result",
+                    "SES sends the polished attachment after the job succeeds.",
+                  ],
+                ].map(([num, title, body]) => (
+                  <div
+                    key={title}
+                    className="rounded-3xl border border-slate-100 bg-slate-50 p-5"
+                  >
+                    <span className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-950 text-sm font-black text-white">
+                      {num}
+                    </span>
+                    <h3 className="mt-5 text-lg font-black">{title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {body}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex space-x-6">
-              <Link href="/terms" className="hover:text-slate-900 transition">Terms of Service</Link>
-              <Link href="/privacy" className="hover:text-slate-900 transition">Privacy Policy</Link>
-              <a href="mailto:support@taskengine.software" className="hover:text-slate-900 transition">Contact Operators</a>
+          </div>
+        </section>
+
+        <section id="agents" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+          <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.22em] text-indigo-600">
+                Agent catalog
+              </p>
+              <h2 className="mt-3 text-4xl font-black tracking-tight">
+                Choose the specialist for the job.
+              </h2>
+            </div>
+            <p className="max-w-xl text-slate-600">
+              Each agent is packaged around a concrete business deliverable, not
+              a vague chatbot session.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {AGENTS.map((agent) => (
+              <button
+                key={agent.id}
+                onClick={() => setActiveAgent(agent)}
+                className={`rounded-3xl border p-5 text-left shadow-sm transition hover:-translate-y-1 ${activeAgent.id === agent.id ? "border-indigo-300 bg-white shadow-indigo-100" : "border-white bg-white/70 hover:bg-white"}`}
+              >
+                <span className="text-3xl" aria-hidden>
+                  {agent.icon}
+                </span>
+                <h3 className="mt-4 text-xl font-black">{agent.name}</h3>
+                <p className="mt-1 text-sm font-bold text-indigo-600">
+                  {agent.role}
+                </p>
+                <p className="mt-4 text-sm leading-6 text-slate-600">
+                  {agent.desc}
+                </p>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section id="console" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+          <div className="grid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="bg-slate-950 p-8 text-white lg:p-10">
+              <div className="flex items-center gap-4">
+                <span className="text-4xl">{activeAgent.icon}</span>
+                <div>
+                  <p className="text-sm font-black uppercase tracking-[0.2em] text-indigo-300">
+                    Selected agent
+                  </p>
+                  <h2 className="text-3xl font-black">{activeAgent.name}</h2>
+                </div>
+              </div>
+              <p className="mt-6 text-lg leading-8 text-slate-300">
+                {activeAgent.desc}
+              </p>
+              <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+                <p className="text-sm font-black uppercase tracking-wide text-slate-400">
+                  Deliverable
+                </p>
+                <p className="mt-2 text-xl font-black">
+                  {activeAgent.deliverable}
+                </p>
+                <p className="mt-2 text-sm text-slate-400">
+                  {activeAgent.proof}
+                </p>
+              </div>
+              <div className="mt-8 grid grid-cols-2 gap-2">
+                {activeAgent.dataPoints.map((point) => (
+                  <span
+                    key={point}
+                    className="rounded-xl bg-white/10 px-3 py-2 text-sm font-bold text-slate-200"
+                  >
+                    ✓ {point}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="p-6 sm:p-8 lg:p-10">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {activeAgent.capabilities.map((capability) => (
+                  <div
+                    key={capability}
+                    className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm font-bold text-slate-700"
+                  >
+                    {capability}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8 space-y-5">
+                <label className="block">
+                  <span className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                    Task instructions
+                  </span>
+                  <textarea
+                    rows={6}
+                    value={inputs[activeAgent.id].prompt}
+                    onChange={(e) =>
+                      handleInputChange(
+                        activeAgent.id,
+                        "prompt",
+                        e.target.value,
+                      )
+                    }
+                    placeholder={activeAgent.placeholder}
+                    className="mt-2 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                    disabled={isProcessing}
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                    Delivery email
+                  </span>
+                  <input
+                    type="email"
+                    value={inputs[activeAgent.id].email}
+                    onChange={(e) =>
+                      handleInputChange(activeAgent.id, "email", e.target.value)
+                    }
+                    placeholder="operator@company.com"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                    disabled={isProcessing}
+                  />
+                </label>
+                <button
+                  onClick={() =>
+                    handleCheckout(activeAgent.id, activeAgent.name)
+                  }
+                  disabled={isProcessing}
+                  className="w-full rounded-2xl bg-slate-950 px-6 py-4 text-base font-black text-white shadow-xl shadow-slate-950/15 transition hover:-translate-y-1 hover:bg-indigo-600 disabled:bg-slate-400 disabled:transform-none disabled:cursor-not-allowed"
+                >
+                  {isProcessing ? "Initializing Secure Checkout..." : "Initialize execution · ₹1,500"}
+                </button>
+                <p className="text-center text-xs font-semibold text-slate-500">
+                  Secure Razorpay order created server-side. AWS verifies
+                  payment before the worker runs.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="process" className="bg-white py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-sm font-black uppercase tracking-[0.22em] text-indigo-600">
+                Built for speed
+              </p>
+              <h2 className="mt-3 text-4xl font-black tracking-tight">
+                A retry-safe operating model your customers can trust.
+              </h2>
+            </div>
+            <div className="mt-10 grid gap-4 md:grid-cols-3">
+              {[
+                [
+                  "1",
+                  "Write the brief",
+                  "Describe the target, constraints, tone, tools, and exclusions in plain English.",
+                ],
+                [
+                  "2",
+                  "Pay once",
+                  "Checkout creates a real Razorpay order instead of trusting browser-only payment data.",
+                ],
+                [
+                  "3",
+                  "Receive the file",
+                  "The AWS worker runs in the background and sends a structured CSV, Markdown, report, or blueprint.",
+                ],
+              ].map(([num, title, body]) => (
+                <div
+                  key={title}
+                  className="rounded-3xl border border-slate-100 bg-slate-50 p-7"
+                >
+                  <span className="grid h-11 w-11 place-items-center rounded-2xl bg-indigo-600 font-black text-white">
+                    {num}
+                  </span>
+                  <h3 className="mt-6 text-xl font-black">{title}</h3>
+                  <p className="mt-3 leading-7 text-slate-600">{body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="pricing"
+          className="bg-slate-950 px-4 py-20 text-white sm:px-6"
+        >
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2 lg:items-center">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.22em] text-indigo-300">
+                Anti-retainer pricing
+              </p>
+              <h2 className="mt-3 text-4xl font-black tracking-tight">
+                Pay for outcomes, not unused dashboards.
+              </h2>
+              <p className="mt-5 text-lg leading-8 text-slate-300">
+                TaskEngine is designed for founders, agencies, and operators who
+                need work completed occasionally and quickly.
+              </p>
+            </div>
+            <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-8">
+              <div className="text-6xl font-black">₹1,500</div>
+              <p className="mt-2 font-bold text-indigo-200">per execution</p>
+              <ul className="mt-8 space-y-4 text-slate-200">
+                {[
+                  "No monthly plan",
+                  "No unused credits",
+                  "Free re-run if the output misses the accepted brief",
+                  "Human-readable deliverables for immediate handoff",
+                ].map((item) => (
+                  <li key={item} className="flex gap-3">
+                    <span className="text-emerald-300">✓</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="faq" className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
+          <h2 className="text-center text-4xl font-black tracking-tight">
+            Questions before you dispatch an agent?
+          </h2>
+          <div className="mt-10 space-y-3">
+            {FAQS.map(([q, a], index) => (
+              <div
+                key={q}
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                  className="flex w-full items-center justify-between gap-4 p-5 text-left font-black"
+                >
+                  <span>{q}</span>
+                  <span className="text-xl text-indigo-600">
+                    {openFaq === index ? "−" : "+"}
+                  </span>
+                </button>
+                {openFaq === index && (
+                  <p className="px-5 pb-5 leading-7 text-slate-600">{a}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <footer className="border-t border-slate-200 bg-white px-4 py-10 sm:px-6">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 text-sm font-semibold text-slate-500 md:flex-row">
+            <div className="flex items-center gap-3">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-950 text-xs font-black text-white">
+                TE
+              </span>
+              <span>© 2026 TaskEngine. On-demand AI operations.</span>
+            </div>
+            <div className="flex gap-6">
+              <Link href="/terms" className="hover:text-slate-950">
+                Terms
+              </Link>
+              <Link href="/privacy" className="hover:text-slate-950">
+                Privacy
+              </Link>
+              <a
+                href="mailto:support@taskengine.software"
+                className="hover:text-slate-950"
+              >
+                support@taskengine.software
+              </a>
             </div>
           </div>
         </footer>
-
-      </div>
+      </main>
     </>
   );
 }
