@@ -1,29 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "TaskEngine — On-Demand AI Agents for Leads, Content, SEO & Automation",
+  title: "TaskEngine — Pay-Per-Task AI Agents for Business Operations",
   description:
-    "Skip the SaaS subscription. Hire pre-trained AI agents for B2B lead generation, SEO content, competitor analysis, and workflow automation — flat ₹1,500 per task, no retainers.",
+    "Launch AI task agents for lead research, SEO content, competitor analysis, and workflow automation. Flat ₹1,500 per task with inbox delivery and no subscriptions.",
   metadataBase: new URL("https://taskengine.software"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "TaskEngine — Pay-Per-Task AI Agents",
-    description: "No subscriptions. Just execution. ₹1,500 per task, delivered to your inbox.",
+    title: "TaskEngine — Pay-Per-Task AI Operations",
+    description: "Hire specialized AI task agents for business operations. Flat ₹1,500 per execution, delivered to your inbox.",
     url: "https://taskengine.software",
     siteName: "TaskEngine",
     images: ["/og-image.png"], // create a 1200x630 image and place in /public
@@ -32,8 +21,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "TaskEngine — Pay-Per-Task AI Agents",
-    description: "No subscriptions. Just execution. ₹1,500 per task.",
+    title: "TaskEngine — Pay-Per-Task AI Operations",
+    description: "Pay-per-task AI agents for business operators. No subscriptions.",
     images: ["/og-image.png"],
   },
 };
@@ -44,10 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         {children}
 

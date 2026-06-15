@@ -19,7 +19,7 @@ const LOG_STEPS = [
 export default function SuccessTerminal() {
   const [logs, setLogs] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
+  const isComplete = currentIndex >= LOG_STEPS.length;
 
   useEffect(() => {
     if (currentIndex < LOG_STEPS.length) {
@@ -32,8 +32,6 @@ export default function SuccessTerminal() {
       }, delay);
       
       return () => clearTimeout(timer);
-    } else {
-      setIsComplete(true);
     }
   }, [currentIndex]);
 
