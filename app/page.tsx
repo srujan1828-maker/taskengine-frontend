@@ -19,6 +19,7 @@ type RazorpayCheckoutOptions = {
   prefill: { email: string };
   notes: Record<string, string>;
   theme: { color: string };
+  modal?: { ondismiss: () => void };
 };
 
 type CheckoutResponse = {
@@ -167,6 +168,7 @@ export default function Home() {
   const router = useRouter();
   const [activeAgent, setActiveAgent] = useState<AgentDetails>(AGENTS[0]);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [inputs, setInputs] = useState<
     Record<AgentKey, { prompt: string; email: string }>
   >({
@@ -199,7 +201,10 @@ export default function Home() {
       return;
     }
 
+    setIsProcessing(true);
+
     try {
+      // Ensure your backend API route is located exactly at `app/api/checkout/route.ts`
       const checkoutResponse = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -226,6 +231,7 @@ export default function Home() {
           checkout.error ??
             "Unable to initialize checkout. Please contact support@taskengine.software.",
         );
+        setIsProcessing(false);
         return;
       }
 
@@ -237,10 +243,15 @@ export default function Home() {
         name: "TaskEngine",
         description: `Hire ${agentName}`,
         image: "https://taskengine.software/logo.png",
-        handler: () =>
-          router.push(
-            `/success?order=${checkout.internalOrderId ?? checkout.orderId}`,
-          ),
+        handler: () => {
+          router.push(`/success?order=${checkout.internalOrderId ?? checkout.orderId}`);
+        },
+        modal: {
+          ondismiss: () => {
+            // Unlock the UI if the user closes the Razorpay window without paying
+            setIsProcessing(false);
+          }
+        },
         prefill: { email },
         notes: {
           internal_order_id: checkout.internalOrderId ?? checkout.orderId,
@@ -257,6 +268,7 @@ export default function Home() {
       alert(
         "Unable to initialize checkout. Please try again or contact support@taskengine.software.",
       );
+      setIsProcessing(false);
     }
   };
 
@@ -572,6 +584,7 @@ export default function Home() {
                     }
                     placeholder={activeAgent.placeholder}
                     className="mt-2 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                    disabled={isProcessing}
                   />
                 </label>
                 <label className="block">
@@ -586,15 +599,17 @@ export default function Home() {
                     }
                     placeholder="operator@company.com"
                     className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                    disabled={isProcessing}
                   />
                 </label>
                 <button
                   onClick={() =>
                     handleCheckout(activeAgent.id, activeAgent.name)
                   }
-                  className="w-full rounded-2xl bg-slate-950 px-6 py-4 text-base font-black text-white shadow-xl shadow-slate-950/15 transition hover:-translate-y-1 hover:bg-indigo-600"
+                  disabled={isProcessing}
+                  className="w-full rounded-2xl bg-slate-950 px-6 py-4 text-base font-black text-white shadow-xl shadow-slate-950/15 transition hover:-translate-y-1 hover:bg-indigo-600 disabled:bg-slate-400 disabled:transform-none disabled:cursor-not-allowed"
                 >
-                  Initialize execution · ₹1,500
+                  {isProcessing ? "Initializing Secure Checkout..." : "Initialize execution · ₹1,500"}
                 </button>
                 <p className="text-center text-xs font-semibold text-slate-500">
                   Secure Razorpay order created server-side. AWS verifies
